@@ -1,0 +1,5 @@
+projects:
+  feOSLib:
+  - records/FreeRTOS/Common.yaml
+settings:
+  export_dir: .

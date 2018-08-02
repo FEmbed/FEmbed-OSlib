@@ -1,0 +1,41 @@
+portable:
+    gcc_arm_cm0:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM0
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM0
+    gcc_arm_cm3:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM3
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM3
+    gcc_arm_cm3_mpu:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
+    gcc_arm_cm4f:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
+    gcc_arm_cm4_mpu:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
+    gcc_arm_cm7:
+        includes:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
+        sources:
+        - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
+        
+common:
+  includes:
+  - RTOS\FreeRTOS\include
+  - RTOS\FreeRTOS\CMSIS_RTOS
+  sources:
+    RTOS:
+    - RTOS\FreeRTOS
+    - RTOS\FreeRTOS\CMSIS_RTOS
+    
