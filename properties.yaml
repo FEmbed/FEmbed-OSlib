@@ -1,0 +1,4 @@
+## 这里是默认属性，项目可以覆盖
+core: cortex-cm4f
+# 仍然是支持heap_1~heap_5
+freertos_heap: heap_4
