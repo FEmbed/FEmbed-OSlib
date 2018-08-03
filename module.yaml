@@ -1,4 +1,4 @@
-src-libraries:
+libraries:
     feOSLib:
     - records/FreeRTOS/Common.yaml
 required:

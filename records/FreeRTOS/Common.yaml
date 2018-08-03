@@ -47,4 +47,6 @@ common:
     - RTOS\FreeRTOS
     - RTOS\FreeRTOS\CMSIS_RTOS
     - RTOS\FreeRTOS\portable\MemMang\{freertos_heap}.c
+  config:
+    - RTOS\FreeRTOS\include\FreeRTOSConfig.config
     
