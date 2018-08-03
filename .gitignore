@@ -32,3 +32,6 @@
 *.app
 /.settings
 /Debug
+/projects
+/.settings
+/Debug
