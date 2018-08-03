@@ -1,5 +1,8 @@
-projects:
+src-libraries:
   feOSLib:
   - records/FreeRTOS/Common.yaml
 settings:
-  export_dir: .
+  export_dir:
+    - projects/{tool}/{project_name}
+#tool, project_name 是工具变量
+#- projects/{tool}/{project_name}

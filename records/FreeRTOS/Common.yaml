@@ -18,19 +18,19 @@ tool_specific:
             sources:
               RTOS:
               - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
-        core_cortex-cm4f:
+        core_cortex-m4f:
             includes:
             - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
             sources:
               RTOS:
               - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
-        core_cortex-cm4mpu:
+        core_cortex-m4mpu:
             includes:
             - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
             sources:
               RTOS:
               - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
-        core_cortex-cm7:
+        core_cortex-m7:
             includes:
             - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
             sources:
