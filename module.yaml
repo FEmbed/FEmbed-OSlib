@@ -1,6 +1,64 @@
-libraries:
-    feOSLib:
-    - records/FreeRTOS/Common.yaml
+project:
+    name: feOSLib
+favor_dimensions:
+    - mcu
+project_favors:
+    cortex-m0:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM0
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM0
+    cortex-m3:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM3
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM3
+    cortex-m3mpu:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
+    cortex-m4f:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
+    cortex-m4mpu:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
+    cortex-m7:
+        dimension:mcu
+        tool_specific:
+            gcc_arm:
+                includes:
+                - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
+                sources:
+                  RTOS:
+                  - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
+    misc:
+        
 required:
     - feConfig    
 settings:
@@ -9,3 +67,16 @@ settings:
 
 #tool, project_name 是工具变量
 #- projects/{tool}/{project_name}
+common:
+  target:
+  - stm32f469vg
+  includes:
+  - RTOS\FreeRTOS\include
+  - RTOS\FreeRTOS\CMSIS_RTOS
+  sources:
+    RTOS:
+    - RTOS\FreeRTOS
+    - RTOS\FreeRTOS\CMSIS_RTOS
+    - RTOS\FreeRTOS\portable\MemMang\{freertos_heap}.c
+  config:
+    - RTOS\FreeRTOS\include\FreeRTOSConfig.config
