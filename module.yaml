@@ -1,70 +1,45 @@
 project:
     name: feOSLib
+files:
+    includes:
+    - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
+    sources:
+      RTOS:
+      - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
 favor_dimensions:
     - mcu
+    - tool
 project_favors:
+    gcc_arm:
+        dimension: tool
+        properties:
+            tools_dir: GCC
     cortex-m0:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM0
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM0
+        properties:
+            mcu_dir: ARM_CM0
     cortex-m3:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM3
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM3
+        properties:
+            mcu_dir: ARM_CM3
     cortex-m3mpu:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM3_MPU
+        properties:
+            mcu_dir: ARM_CM3_MPU
     cortex-m4f:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM4F
+        properties:
+            mcu_dir: ARM_CM4F
     cortex-m4mpu:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM4_MPU
+        properties:
+            mcu_dir: ARM_CM4_MPU
     cortex-m7:
         dimension:mcu
-        tool_specific:
-            gcc_arm:
-                includes:
-                - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
-                sources:
-                  RTOS:
-                  - RTOS\FreeRTOS\portable\GCC\ARM_CM7\r0p1
-    misc:
-        
+        properties:
+            mcu_dir: ARM_CM7\r0p1        
 required:
-    - feConfig    
-settings:
-    export_dir:
-    - projects/{tool}/{project_name}
-
+    - feConfig
 #tool, project_name 是工具变量
 #- projects/{tool}/{project_name}
 common:
