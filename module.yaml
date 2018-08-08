@@ -15,36 +15,34 @@ project_favors:
         properties:
             tools_dir: GCC
     cortex-m0:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM0
     cortex-m3:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM3
     cortex-m3mpu:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM3_MPU
     cortex-m4f:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM4F
     cortex-m4mpu:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM4_MPU
     cortex-m7:
-        dimension:mcu
+        dimension: mcu
         properties:
             mcu_dir: ARM_CM7\r0p1        
 required:
     - feConfig
 #tool, project_name 是工具变量
 #- projects/{tool}/{project_name}
-common:
-  target:
-  - stm32f469vg
+files:
   includes:
   - RTOS\FreeRTOS\include
   - RTOS\FreeRTOS\CMSIS_RTOS
@@ -53,5 +51,17 @@ common:
     - RTOS\FreeRTOS
     - RTOS\FreeRTOS\CMSIS_RTOS
     - RTOS\FreeRTOS\portable\MemMang\{freertos_heap}.c
+portable:
+  dest: feConfig
+  port:
+    -
   config:
     - RTOS\FreeRTOS\include\FreeRTOSConfig.config
+properties:
+  ## 这里是默认属性，项目可以覆盖
+  ## 内核版本不带后缀，cortex-m4f等效处理为cortex-m4
+  core: cortex-m4f
+
+  # 当前库专用属性
+  # 仍然是支持heap_1~heap_5
+  freertos_heap: heap_4
