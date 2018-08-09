@@ -1,11 +1,5 @@
-project:
-    name: feOSLib
-files:
-    includes:
-    - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
-    sources:
-      RTOS:
-      - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
+name: feOSLib
+type: lib
 favor_dimensions:
     - mcu
     - toolchain
@@ -14,6 +8,14 @@ project_favors:
         dimension: toolchain
         properties:
             tools_dir: GCC
+        files:
+            includes:
+            - RTOS\FreeRTOS\CMSIS_RTOS
+            sources:
+                cmsis_os:
+                - RTOS\FreeRTOS\CMSIS_RTOS
+        required:
+            feCMSIS:
     cortex-m0:
         dimension: mcu
         properties:
@@ -41,12 +43,12 @@ project_favors:
 files:
   includes:
   - RTOS\FreeRTOS\include
-  - RTOS\FreeRTOS\CMSIS_RTOS
+  - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
   sources:
     RTOS:
     - RTOS\FreeRTOS
-    - RTOS\FreeRTOS\CMSIS_RTOS
     - RTOS\FreeRTOS\portable\MemMang\${freertos_heap}.c
+    - RTOS\FreeRTOS\portable\${tools_dir}\${mcu_dir}
 portable:
   dest: feConfig
   port:

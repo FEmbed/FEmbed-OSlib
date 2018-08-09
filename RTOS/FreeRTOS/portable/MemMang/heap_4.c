@@ -434,7 +434,7 @@ uint8_t *puc;
 	}
 }
 
-#if 1
+#if USE_ELOG
 #include "elog.h"
 #define HEAP4_LOG_TAG "HP4"
 size_t freeBytesRemaining() {
