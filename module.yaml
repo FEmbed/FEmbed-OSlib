@@ -12,7 +12,7 @@ project_favors:
             includes:
             - RTOS\FreeRTOS\CMSIS_RTOS
             sources:
-                cmsis_os:
+                CMSIS_OS:
                 - RTOS\FreeRTOS\CMSIS_RTOS
         required:
             feCMSIS:
