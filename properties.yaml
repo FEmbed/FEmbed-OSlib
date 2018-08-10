@@ -1,7 +1,0 @@
-## 这里是默认属性，项目可以覆盖
-## 内核版本不带后缀，cortex-m4f等效处理为cortex-m4
-core: cortex-m4f
-
-# 当前库专用属性
-# 仍然是支持heap_1~heap_5
-freertos_heap: heap_4
