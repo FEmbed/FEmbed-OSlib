@@ -16,6 +16,18 @@ project_favors:
                 - RTOS\FreeRTOS\CMSIS_RTOS
         required:
             feCMSIS:
+    armcc:
+        dimension: toolchain
+        properties:
+            tools_dir: RVDS
+        files:
+            includes:
+            - RTOS\FreeRTOS\CMSIS_RTOS
+            sources:
+                CMSIS_OS:
+                - RTOS\FreeRTOS\CMSIS_RTOS
+        required:
+            feCMSIS:
     cortex-m0:
         dimension: mcu
         properties:
