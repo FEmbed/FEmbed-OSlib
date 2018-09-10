@@ -1,5 +1,8 @@
 name: feOSLib
-type: lib
+type: src
+common:
+    macros:
+        - USE_OSLIB=1
 favor_dimensions:
     - mcu
     - toolchain
