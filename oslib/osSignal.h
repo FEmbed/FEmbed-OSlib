@@ -15,15 +15,67 @@
  *
  */
 
-#ifndef __FE_FASTEMBEDDED_MUTEX_H__
-#define __FE_FASTEMBEDDED_MUTEX_H__
+#ifndef __FE_FASTEMBEDDED_OS_SIGNAL_H__
+#define __FE_FASTEMBEDDED_OS_SIGNAL_H__
+
+#include <stdint.h>
+#include <assert.h>
+
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "event_groups.h"
 
 namespace fastembedded {
 
-class Mutex {
+class OSSignal {
 public:
-	Mutex();
-	virtual ~Mutex();
+	OSSignal()
+	{
+		m_evt = xEventGroupCreate();
+		assert(this->m_evt);
+	}
+
+	virtual ~OSSignal()
+	{
+		vEventGroupDelete(this->m_evt);
+	}
+
+	uint32_t set(uint32_t bits)
+	{
+		// TODO Interrupt.
+		return xEventGroupSetBits(this->m_evt, bits);
+	}
+
+	uint32_t wait(uint32_t bits, uint32_t ms = 0xFFFFFFFF)
+	{
+		portTickType ticks;
+		if(0xFFFFFFFF == ms)
+		{
+			ticks = portMAX_DELAY;
+		}
+		else
+		{
+			ticks = ms / portTICK_RATE_MS;
+			if (ticks == 0) {
+				ticks = 1;
+			}
+		}
+
+		// TODO Interrupt.
+		return xEventGroupWaitBits(this->m_evt,
+				bits,
+				pdTRUE,
+				pdFALSE,
+				ticks);
+	}
+
+	uint32_t clear(uint32_t bits)
+	{
+		// TODO Interrupt.
+		return xEventGroupClearBits(this->m_evt, bits);
+	}
+private:
+	EventGroupHandle_t m_evt;
 };
 
 } /* namespace fastembedded */

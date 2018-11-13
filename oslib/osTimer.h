@@ -15,15 +15,62 @@
  *
  */
 
-#ifndef __FE_FASTEMBEDDED_MUTEX_H__
-#define __FE_FASTEMBEDDED_MUTEX_H__
+#ifndef __FE_FASTEMBEDDED_OS_TIMER_H__
+#define __FE_FASTEMBEDDED_OS_TIMER_H__
+
+#include <stdint.h>
+#include <assert.h>
+
+#include "FreeRTOS.h"
+#include "timers.h"
 
 namespace fastembedded {
 
-class Mutex {
+template<typename callback_t = TimerCallbackFunction_t>
+class OSTimer {
 public:
-	Mutex();
-	virtual ~Mutex();
+	template<typename callback_t>
+	OSTimer(callback_t cb, bool reload, void* argument)
+	{
+		this->m_timer = xTimerCreate(
+				"FE:Timer"
+                1,
+				reload? pdTRUE : pdFALSE,
+                argument,
+                cb);
+		assert(this->m_timer);
+	}
+
+	virtual ~OSTimer()
+	{
+		xTimerDelete(this->m_timer, portMAX_DELAY);
+	}
+
+	bool Start(uint32_t ms)
+	{
+		portTickType ticks = ms / portTICK_RATE_MS;
+		// TODO interrupt
+		if (xTimerChangePeriod(this->m_timer, ticks, 0) != pdPASS)
+			return false;
+		else
+		{
+		if (xTimerStart(this->m_timer, 0) != pdPASS)
+			return false;
+		}
+		return true;
+	}
+
+	bool stop()
+	{
+		// TODO interrupt
+	    if (xTimerStop(this->m_timer, 0) != pdPASS) {
+	      return false;
+	    }
+	    return true;
+	}
+
+private:
+	TimerHandle_t m_timer;
 };
 
 } /* namespace fastembedded */

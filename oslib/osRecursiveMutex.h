@@ -15,15 +15,63 @@
  *
  */
 
-#ifndef __FE_FASTEMBEDDED_MUTEX_H__
-#define __FE_FASTEMBEDDED_MUTEX_H__
+#ifndef __FE_FASTEMBEDDED_OS_RECURSIVEMUTEX_H__
+#define __FE_FASTEMBEDDED_OS_RECURSIVEMUTEX_H__
+
+#include <stdint.h>
+#include <assert.h>
+
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 namespace fastembedded {
 
-class Mutex {
+class OSRecursiveMutex {
 public:
-	Mutex();
-	virtual ~Mutex();
+	OSRecursiveMutex()
+	{
+		this->m_mutex = xSemaphoreCreateRecursiveMutex();
+		assert(this->m_mutex);
+	}
+
+	virtual ~OSRecursiveMutex()
+	{
+		vQueueDelete(this->m_mutex);
+	}
+
+	bool wait(uint32_t ms = 0xFFFFFFFF)
+	{
+		portTickType ticks;
+		if(0xFFFFFFFF == ms)
+		{
+			ticks = portMAX_DELAY;
+		}
+		else
+		{
+			ticks = ms / portTICK_RATE_MS;
+			if (ticks == 0) {
+				ticks = 1;
+			}
+		}
+
+		// TODO interrupt...
+		if (xSemaphoreTakeRecursive(this->m_mutex, ticks) != pdTRUE) {
+			return false;
+		}
+		return true;
+	}
+
+	bool release()
+	{
+		// TODO interrupt...
+		if (xSemaphoreGiveRecursive(this->m_mutex) != pdTRUE) {
+			return false;
+		}
+		return true;
+	}
+
+private:
+	xSemaphoreHandle m_mutex;
 };
 
 } /* namespace fastembedded */

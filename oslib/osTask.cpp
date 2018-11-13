@@ -98,6 +98,7 @@ uint32_t OSTask::priority()
 
 void OSTask::exit(int signal)
 {
+	(void) signal;
 	this->m_exit = true;
 }
 

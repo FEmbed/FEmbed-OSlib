@@ -15,17 +15,71 @@
  *
  */
 
-#ifndef __FE_FASTEMBEDDED_MUTEX_H__
-#define __FE_FASTEMBEDDED_MUTEX_H__
+#ifndef __FE_FASTEMBEDDED_SEMAPHORE_H__
+#define __FE_FASTEMBEDDED_SEMAPHORE_H__
+
+#include <stdint.h>
+#include <assert.h>
+
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 namespace fastembedded {
 
-class Mutex {
+class OSSemaphore {
 public:
-	Mutex();
-	virtual ~Mutex();
+	OSSemaphore(int32_t count = 1, int32_t init = count)
+	{
+		if(count == 1)
+		{
+			vSemaphoreCreateBinary(this->m_sem);
+		}
+		else
+		{
+			this->m_sem = xSemaphoreCreateCounting(count, init);
+		}
+		assert(this->m_sem);
+	}
+
+	virtual ~OSSemaphore()
+	{
+		vSemaphoreDelete(this->m_sem);
+	}
+
+	bool wait(uint32_t ms = 0xFFFFFFFF)
+	{
+		portTickType ticks;
+		if(0xFFFFFFFF == ms)
+		{
+			ticks = portMAX_DELAY;
+		}
+		else
+		{
+			ticks = ms / portTICK_RATE_MS;
+			if (ticks == 0) {
+				ticks = 1;
+			}
+		}
+
+		// TODO interrupt...
+		if (xSemaphoreTake(this->m_sem, ticks) != pdTRUE) {
+			return false;
+		}
+		return true;
+	}
+
+	bool release()
+	{
+		// TODO interrupt...
+		if (xSemaphoreGive(this->m_sem) != pdTRUE) {
+			return false;
+		}
+		return true;
+	}
+private:
+	SemaphoreHandle_t m_sem;
 };
 
 } /* namespace fastembedded */
 
-#endif /* MUTEX_H_ */
+#endif /* Semaphore_H_ */
