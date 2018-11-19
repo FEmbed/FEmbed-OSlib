@@ -456,5 +456,5 @@ size_t vPortMemInfoDetails(void)
     return xFreeBytesRemaining;
 }
 #else
-size_t vPortMemInfoDetails(void) {};
+size_t vPortMemInfoDetails(void) { return 0;};
 #endif

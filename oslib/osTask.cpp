@@ -8,7 +8,7 @@
 #include <malloc.h>
 #include <string.h>
 
-#include "OSTask.h"
+#include "osTask.h"
 
 static void OSTask_runable_wrap(void *arg)
 {

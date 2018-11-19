@@ -1,0 +1,15 @@
+menu "FastEmbedded RTOS Library Configuration"
+    depends on RTOS
+
+choice RTOS_LIB
+    prompt "RTOS Library"
+    default RTOS_LIB_FREERTOS
+    help
+        Please select one of RTOS lib for SDK Library core.
+
+config RTOS_LIB_FREERTOS
+    bool "FreeRTOS"
+
+endchoice
+
+endmenu
