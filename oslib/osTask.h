@@ -60,7 +60,7 @@ public:
 	 */
 	static void delay(uint32_t ms);
 	static void osInit();
-
+	static OSTask* currentTask();
 protected:
 	void lock();
 	void unlock();

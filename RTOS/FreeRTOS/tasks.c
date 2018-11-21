@@ -3717,7 +3717,10 @@ static void prvCheckTasksWaitingTermination( void )
 			{
 				/* Neither the stack nor the TCB were allocated dynamically, so
 				nothing needs to be freed. */
-			#if USE_OSLIB == 0
+			#if USE_OSLIB
+				vPortFree( pxTCB->pxStack );
+				vPortFree( pxTCB );
+			#else
 				configASSERT( pxTCB->ucStaticallyAllocated == tskSTATICALLY_ALLOCATED_STACK_AND_TCB	);
 			#endif
 				mtCOVERAGE_TEST_MARKER();

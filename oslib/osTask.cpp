@@ -24,10 +24,12 @@
 
 static void OSTask_runable_wrap(void *arg)
 {
-	fastembedded::OSTask *OSTask = static_cast<fastembedded::OSTask *>(arg);
-	if(OSTask->isRun() == false)
-		OSTask->stop();
-	OSTask->loop();
+	fastembedded::OSTask *task = static_cast<fastembedded::OSTask *>(arg);
+	if(task->isRun() == false)
+		task->stop();
+	task->loop();
+	// Auto free task information.
+	delete task;
 }
 
 namespace fastembedded {
@@ -77,7 +79,7 @@ OSTask::OSTask(
 			priority,
 			(StackType_t * const)stack_ptr,
 			(StaticTask_t * const)task_ptr);
-	assert(this->d_ptr->handle);
+	assert(this->d_ptr->handle == task_ptr);
 
 	this->d_ptr->m_lock = xSemaphoreCreateMutex();
 	assert(this->d_ptr->m_lock);
@@ -155,5 +157,10 @@ void OSTask::delay(uint32_t ms)
 void OSTask::osInit()
 {
 	vTaskStartScheduler();
+}
+
+OSTask* OSTask::currentTask()
+{
+	return ((OSTaskPrivateData *)((uint8_t *)xTaskGetCurrentTaskHandle() + STATICTASK_SIZE))->m_task;
 }
 }
