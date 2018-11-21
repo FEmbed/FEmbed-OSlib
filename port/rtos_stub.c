@@ -2,10 +2,26 @@
  *	FreeRTOS need port function
  */ 
 #include <assert.h>
+#include <malloc.h>
 #include "FreeRTOS.h"
 #include "task.h"
 
 #if CONFIG_RTOS_LIB_FREERTOS
+
+// We only use static create task method.
+void *pvPortMalloc(size_t xWantedSize) {
+	void *ptr;
+	vPortEnterCritical();
+	ptr = malloc(xWantedSize);
+	vPortExitCritical();
+	return ptr;
+}
+void vPortFree(void *pv) {
+	vPortEnterCritical();
+	free(pv);
+	vPortExitCritical();
+}
+
 void vApplicationMallocFailedHook( void )
 {
     assert(0);

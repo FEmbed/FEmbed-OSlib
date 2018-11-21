@@ -80,13 +80,18 @@
 /* USER CODE END Includes */ 
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
-#if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
+#ifdef CONFIG_VENDOR_ST
     #include <stdint.h>
     extern uint32_t SystemCoreClock;
-    #define __ccm  __attribute__ ((section(".data_CCMRAM")))
     #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #else
     #define configCPU_CLOCK_HZ                       ( 120000000 )
+#endif
+
+#ifdef CONFIG_CCMRAM
+#define __ccm  __attribute__ ((section(".data_CCMRAM")))
+#else
+#define __ccm
 #endif
 
 #define configUSE_PREEMPTION                     1

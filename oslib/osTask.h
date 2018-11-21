@@ -41,7 +41,7 @@ public:
 class OSTask {
 public:
 	OSTask( const char* name,
-			unsigned int stack_size = 2048,
+			unsigned int stack_size = 4096,
 			unsigned int priority = configMAX_PRIORITIES
 			);
 	virtual ~OSTask();
@@ -52,13 +52,14 @@ public:
 	bool isRun();
 	uint32_t priority();
 
-	virtual void runable();
+	virtual void loop();
 
 	/**
 	 * static delay function for RTOS.
 	 * @param ms delay millisec for current thread.
 	 */
 	static void delay(uint32_t ms);
+	static void osInit();
 
 protected:
 	void lock();

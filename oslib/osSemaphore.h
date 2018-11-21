@@ -28,7 +28,7 @@ namespace fastembedded {
 
 class OSSemaphore {
 public:
-	OSSemaphore(int32_t count = 1, int32_t init = count)
+	OSSemaphore(int32_t count = 1, int32_t init = -1)
 	{
 		if(count == 1)
 		{
@@ -36,7 +36,7 @@ public:
 		}
 		else
 		{
-			this->m_sem = xSemaphoreCreateCounting(count, init);
+			this->m_sem = xSemaphoreCreateCounting(count, init<0?count:init);
 		}
 		assert(this->m_sem);
 	}
