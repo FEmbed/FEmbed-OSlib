@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "osTask.h"
+#include "driver.h"
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
@@ -132,6 +133,16 @@ void OSTask::exit(int signal)
 	this->m_exit = true;
 }
 
+char *OSTask::name()
+{
+	if(this->d_ptr->m_is_run)
+	{
+		return pcTaskGetName(this->d_ptr->handle);
+	}
+
+	return (char *)"?";
+}
+
 void OSTask::loop()
 {
 	//Must override this function for real do.
@@ -161,6 +172,17 @@ void OSTask::osInit()
 
 OSTask* OSTask::currentTask()
 {
-	return ((OSTaskPrivateData *)((uint8_t *)xTaskGetCurrentTaskHandle() + STATICTASK_SIZE))->m_task;
+	if(xTaskGetCurrentTaskHandle())
+		return ((OSTaskPrivateData *)((uint8_t *)xTaskGetCurrentTaskHandle() + STATICTASK_SIZE))->m_task;
+	return NULL;
+}
+
+int OSTask::currentTick()
+{
+	if(FE_IS_IN_ISR())
+		return xTaskGetTickCountFromISR();
+	else
+		return xTaskGetTickCount();
+
 }
 }

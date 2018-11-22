@@ -81,8 +81,10 @@
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
 #ifdef CONFIG_VENDOR_ST
-    #include <stdint.h>
-    extern uint32_t SystemCoreClock;
+#ifdef STM32F4xx
+    #include "stm32f4xx.h"
+#else
+#endif
     #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #else
     #define configCPU_CLOCK_HZ                       ( 120000000 )
@@ -102,7 +104,7 @@
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
 #define configTOTAL_HEAP_SIZE                    ((size_t)80*1024)
-#define configMAX_TASK_NAME_LEN                  ( 16 )
+#define configMAX_TASK_NAME_LEN                  ( 32 )
 #define configUSE_TRACE_FACILITY                 1
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1

@@ -40,7 +40,7 @@ public:
  */
 class OSTask {
 public:
-	OSTask( const char* name,
+	OSTask(const char* name,
 			unsigned int stack_size = 4096,
 			unsigned int priority = configMAX_PRIORITIES
 			);
@@ -51,6 +51,7 @@ public:
 	void exit(int signal);
 	bool isRun();
 	uint32_t priority();
+	char *name();
 
 	virtual void loop();
 
@@ -61,6 +62,7 @@ public:
 	static void delay(uint32_t ms);
 	static void osInit();
 	static OSTask* currentTask();
+	static int currentTick();
 protected:
 	void lock();
 	void unlock();
