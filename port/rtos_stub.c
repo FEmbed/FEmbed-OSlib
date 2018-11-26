@@ -61,11 +61,11 @@ void vApplicationGetTimerTaskMemory(
 /******************************************************************************
  * freertos init function, will auto called by init function.
  ******************************************************************************/
-#include "driver.h"
-void freertos_global_init()
-{
-    vTaskStartScheduler();
-}
-
-FE_INIT(freertos_global_init)
+//#include "driver.h"
+//void freertos_global_init()
+//{
+//    vTaskStartScheduler();
+//}
+//
+//FE_INIT(freertos_global_init)
 #endif
