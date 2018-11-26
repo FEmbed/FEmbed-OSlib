@@ -52,14 +52,13 @@ public:
 	bool isRun();
 	uint32_t priority();
 	char *name();
-
+    void delay(uint32_t ms);
 	virtual void loop();
 
 	/**
 	 * static delay function for RTOS.
 	 * @param ms delay millisec for current thread.
 	 */
-	static void delay(uint32_t ms);
 	static void osInit();
 	static OSTask* currentTask();
 	static int currentTick();
