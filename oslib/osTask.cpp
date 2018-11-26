@@ -165,10 +165,10 @@ void OSTask::delay(uint32_t ms)
 	vTaskDelay(ticks ? ticks : 1);
 }
 
-//void OSTask::osInit()
-//{
-//	vTaskStartScheduler();
-//}
+void OSTask::osInit()
+{
+	vTaskStartScheduler();
+}
 
 OSTask* OSTask::currentTask()
 {
