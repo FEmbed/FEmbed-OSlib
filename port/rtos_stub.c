@@ -57,4 +57,15 @@ void vApplicationGetTimerTaskMemory(
     *ppxTimerTaskStackBuffer = uxIdleTaskStack;
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
+
+/******************************************************************************
+ * freertos init function, will auto called by init function.
+ ******************************************************************************/
+#include "driver.h"
+void freertos_global_init()
+{
+    vTaskStartScheduler();
+}
+
+FE_INIT(freertos_global_init)
 #endif

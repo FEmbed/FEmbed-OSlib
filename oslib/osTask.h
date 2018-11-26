@@ -60,7 +60,7 @@ public:
 	 * @param ms delay millisec for current thread.
 	 */
 	static void delay(uint32_t ms);
-	static void osInit();
+//	static void osInit();
 	static OSTask* currentTask();
 	static int currentTick();
 protected:

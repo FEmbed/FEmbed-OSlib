@@ -72,6 +72,9 @@ OSTask::OSTask(
 
 	this->m_exit = 0;
 
+    this->d_ptr->m_lock = xSemaphoreCreateMutex();
+    assert(this->d_ptr->m_lock);
+
 	this->d_ptr->handle = xTaskCreateStatic(
 			OSTask_runable_wrap,
 			name,
@@ -81,9 +84,6 @@ OSTask::OSTask(
 			(StackType_t * const)stack_ptr,
 			(StaticTask_t * const)task_ptr);
 	assert(this->d_ptr->handle == task_ptr);
-
-	this->d_ptr->m_lock = xSemaphoreCreateMutex();
-	assert(this->d_ptr->m_lock);
 	vPortExitCritical();
 }
 
@@ -101,8 +101,8 @@ OSTask::~OSTask() {
 	{
 		free((void *)this);
 	}
-	vTaskDelete(handle);
 	taskEXIT_CRITICAL();
+    vTaskDelete(handle);
 }
 
 void OSTask::start()
@@ -165,10 +165,10 @@ void OSTask::delay(uint32_t ms)
 	vTaskDelay(ticks ? ticks : 1);
 }
 
-void OSTask::osInit()
-{
-	vTaskStartScheduler();
-}
+//void OSTask::osInit()
+//{
+//	vTaskStartScheduler();
+//}
 
 OSTask* OSTask::currentTask()
 {
