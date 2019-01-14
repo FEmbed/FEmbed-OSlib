@@ -83,7 +83,14 @@
 #ifdef CONFIG_VENDOR_ST
 #ifdef STM32F4xx
     #include "stm32f4xx.h"
-#else
+#elif defined(STM32F3xx)
+    #include "stm32f3xx.h"
+#elif defined(STM32F2xx)
+    #include "stm32f2xx.h"
+#elif defined(STM32F1xx)
+    #include "stm32f1xx.h"
+#elif defined(STM32F0xx)
+    #include "stm32f0xx.h"
 #endif
     #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #else
