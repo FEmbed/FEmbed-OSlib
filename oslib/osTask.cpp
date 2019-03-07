@@ -161,8 +161,7 @@ void OSTask::unlock()
 
 void OSTask::delay(uint32_t ms)
 {
-	portTickType ticks = ms / portTICK_RATE_MS;
-	vTaskDelay(ticks ? ticks : 1);
+	osDelay(ms);
 }
 
 void OSTask::osInit()
@@ -170,10 +169,16 @@ void OSTask::osInit()
 	vTaskStartScheduler();
 }
 
+/**
+ * Current OSTask handle will return.
+ * Idle Task and Timer Task will case error!
+ * @return
+ */
 OSTask* OSTask::currentTask()
 {
-	if(xTaskGetCurrentTaskHandle())
-		return ((OSTaskPrivateData *)((uint8_t *)xTaskGetCurrentTaskHandle() + STATICTASK_SIZE))->m_task;
+	TaskHandle_t cur_handle = xTaskGetCurrentTaskHandle();
+	if(cur_handle)
+		return ((OSTaskPrivateData *)((uint8_t *)cur_handle + STATICTASK_SIZE))->m_task;
 	return NULL;
 }
 
@@ -185,4 +190,11 @@ int OSTask::currentTick()
 		return xTaskGetTickCount();
 
 }
+
+void osDelay(uint32_t ms)
+{
+	portTickType ticks = ms / portTICK_RATE_MS;
+	vTaskDelay(ticks ? ticks : 1);
+}
+
 }

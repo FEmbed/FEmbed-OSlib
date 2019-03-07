@@ -71,5 +71,8 @@ protected:
 private:
 	OSTaskPrivateData *d_ptr;
 };
+
+	// static global delay
+	void osDelay(uint32_t ms);
 }
 #endif /* __FE_FASTEMBEDDED_TASK_H__ */
