@@ -25,7 +25,7 @@
 #include "semphr.h"
 #include "event_groups.h"
 
-namespace fastembedded {
+namespace FEmbed {
 
 class OSSignal {
 public:
@@ -78,6 +78,6 @@ private:
 	EventGroupHandle_t m_evt;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */

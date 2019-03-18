@@ -24,7 +24,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-namespace fastembedded {
+namespace FEmbed {
 
 class OSSemaphore {
 public:
@@ -80,6 +80,6 @@ private:
 	SemaphoreHandle_t m_sem;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* Semaphore_H_ */

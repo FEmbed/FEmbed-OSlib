@@ -24,7 +24,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-namespace fastembedded {
+namespace FEmbed {
 
 class OSRecursiveMutex {
 public:
@@ -74,6 +74,6 @@ private:
 	xSemaphoreHandle m_mutex;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */

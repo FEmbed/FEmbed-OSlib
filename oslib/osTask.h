@@ -23,7 +23,7 @@
 #include "task.h"
 #include "semphr.h"
 
-namespace fastembedded {
+namespace FEmbed {
 class OSTask;
 class OSTaskPrivateData;
 

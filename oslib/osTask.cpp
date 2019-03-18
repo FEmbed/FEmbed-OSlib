@@ -25,7 +25,7 @@
 
 static void OSTask_runable_wrap(void *arg)
 {
-	fastembedded::OSTask *task = static_cast<fastembedded::OSTask *>(arg);
+	FEmbed::OSTask *task = static_cast<FEmbed::OSTask *>(arg);
 	if(task->isRun() == false)
 		task->stop();
 	task->loop();
@@ -33,7 +33,7 @@ static void OSTask_runable_wrap(void *arg)
 	delete task;
 }
 
-namespace fastembedded {
+namespace FEmbed {
 
 /**
  * OSTask will allocate 3 continue memory.

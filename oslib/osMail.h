@@ -24,7 +24,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-namespace fastembedded {
+namespace FEmbed {
 class OSMailPrivateData {
 public:
 	xQueueHandle m_msg;
@@ -117,6 +117,6 @@ private:
 	OSMailPrivateData *d_ptr;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */

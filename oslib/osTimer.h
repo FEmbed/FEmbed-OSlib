@@ -24,7 +24,7 @@
 #include "FreeRTOS.h"
 #include "timers.h"
 
-namespace fastembedded {
+namespace FEmbed {
 
 template<typename callback_t = TimerCallbackFunction_t>
 class OSTimer {
@@ -73,6 +73,6 @@ private:
 	TimerHandle_t m_timer;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */

@@ -25,7 +25,7 @@
 #include "semphr.h"
 
 
-namespace fastembedded {
+namespace FEmbed {
 class OSMutexPrivateData;
 
 class OSMutex {
@@ -45,6 +45,6 @@ private:
 	OSMutexPrivateData *d_ptr;
 };
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */

@@ -12,7 +12,7 @@
 #include "semphr.h"
 #include "task.h"
 
-namespace fastembedded {
+namespace FEmbed {
 
 class OSMutexPrivateData {
 public:
@@ -60,4 +60,4 @@ void OSMutex::unlock()
 }
 
 
-} /* namespace fastembedded */
+} /* namespace FEmbed */
