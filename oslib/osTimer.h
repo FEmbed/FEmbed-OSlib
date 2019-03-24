@@ -25,52 +25,28 @@
 #include "timers.h"
 
 namespace FEmbed {
+class OSTimer;
 
-template<typename callback_t = TimerCallbackFunction_t>
+class OSTimerCallback {
+public:
+	virtual void expired(OSTimer *timer) = 0;
+	virtual ~OSTimerCallback() {};
+};
+
 class OSTimer {
 public:
-	template<typename callback_t>
-	OSTimer(callback_t cb, bool reload, void* argument)
-	{
-		this->m_timer = xTimerCreate(
-				"FE:Timer"
-                1,
-				reload? pdTRUE : pdFALSE,
-                argument,
-                cb);
-		assert(this->m_timer);
-	}
+	OSTimer(OSTimerCallback *cb, bool reload, void* argument);
+	virtual ~OSTimer();
 
-	virtual ~OSTimer()
-	{
-		xTimerDelete(this->m_timer, portMAX_DELAY);
-	}
+	bool start(uint32_t ms);
+	bool stop();
+	bool reset();
 
-	bool Start(uint32_t ms)
-	{
-		portTickType ticks = ms / portTICK_RATE_MS;
-		// TODO interrupt
-		if (xTimerChangePeriod(this->m_timer, ticks, 0) != pdPASS)
-			return false;
-		else
-		{
-		if (xTimerStart(this->m_timer, 0) != pdPASS)
-			return false;
-		}
-		return true;
-	}
-
-	bool stop()
-	{
-		// TODO interrupt
-	    if (xTimerStop(this->m_timer, 0) != pdPASS) {
-	      return false;
-	    }
-	    return true;
-	}
+	void expired();
 
 private:
-	TimerHandle_t m_timer;
+	StaticTimer_t m_timer;
+	OSTimerCallback *m_cb;
 };
 
 } /* namespace FEmbed */

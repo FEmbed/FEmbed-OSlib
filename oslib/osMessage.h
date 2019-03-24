@@ -34,7 +34,6 @@ template<typename T = uint32_t, int len = 16>
 class OSMessage {
 public:
 
-	template<typename T, int len>
 	OSMessage() {
 		this->d_ptr = new OSMessagePrivateData();
 		assert(this->d_ptr);
@@ -48,7 +47,6 @@ public:
 		delete this->d_ptr;
 	}
 
-	template<typename T, int len>
 	void put(T& item)
 	{
 		// if(interrupt)
@@ -58,7 +56,6 @@ public:
 		xQueueSend(this->d_ptr->m_msg, &item, portMAX_DELAY);
 	}
 
-	template<typename T, int len>
 	bool tryPut(T& item, uint32_t ms = 0)
 	{
 		portTickType ticks;
@@ -77,7 +74,6 @@ public:
 		return true;
 	}
 
-	template<typename T, int len>
 	void get(T *item)
 	{
 		// if(interrupt)
@@ -87,7 +83,6 @@ public:
 		xQueueReceive(this->d_ptr->m_msg, item, portMAX_DELAY);
 	}
 
-	template<typename T, int len>
 	bool tryGet(T *item, uint32_t ms = 0)
 	{
 		portTickType ticks;

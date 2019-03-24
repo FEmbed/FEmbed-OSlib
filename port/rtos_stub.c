@@ -32,6 +32,9 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
     assert(0);
 }
 
+/**
+ * Idle Task use mini stack size.
+ */
 void vApplicationGetIdleTaskMemory(
         StaticTask_t **ppxIdleTaskTCBBuffer,
         StackType_t **ppxIdleTaskStackBuffer,
@@ -45,6 +48,9 @@ void vApplicationGetIdleTaskMemory(
     *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }
 
+/**
+ * Must implement timer for common use.
+ */
 void vApplicationGetTimerTaskMemory(
         StaticTask_t **ppxTimerTaskTCBBuffer,
         StackType_t **ppxTimerTaskStackBuffer,
