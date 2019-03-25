@@ -44,8 +44,8 @@ public:
 
 	void expired();
 
+    StaticTimer_t m_timer;
 private:
-	StaticTimer_t m_timer;
 	OSTimerCallback *m_cb;
 };
 

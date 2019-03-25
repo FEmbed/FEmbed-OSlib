@@ -17,27 +17,28 @@
 
 #include "osTimer.h"
 #include "driver.h"
+#include "fe_list.h"
 
 namespace FEmbed {
 
 static void TimerCallback(TimerHandle_t timer)
 {
-	OSTimer *os_timer = (OSTimer *)timer;
-	os_timer->expired();
+    OSTimer *os_timer = FE_PARENT_OBJECT(OSTimer, m_timer, timer);
+    os_timer->expired();
 }
 
 OSTimer::OSTimer(OSTimerCallback *cb, bool reload, void* argument)
 {
-	TimerHandle_t timer = xTimerCreateStatic(
-			"FE:Timer",
-			1,
-			reload? pdTRUE : pdFALSE,
-			argument,
-			TimerCallback,
-			&this->m_timer);
-	assert(&this->m_timer == timer);
-	assert(this == timer);
-	this->m_cb = cb;
+    TimerHandle_t timer = xTimerCreateStatic(
+            "FE:Timer",
+            1,
+            reload? pdTRUE : pdFALSE,
+            argument,
+            TimerCallback,
+            &this->m_timer);
+    assert(&this->m_timer == timer);
+    assert(this == FE_PARENT_OBJECT(OSTimer, m_timer, timer));
+    this->m_cb = cb;
 }
 
 OSTimer::~OSTimer()
@@ -46,70 +47,70 @@ OSTimer::~OSTimer()
 
 bool OSTimer::start(uint32_t ms)
 {
-	portTickType ticks = ms / portTICK_RATE_MS;
-	if(FE_IS_IN_ISR())
-	{
-		portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-		if (xTimerChangePeriodFromISR(&this->m_timer, ticks, &xHigherPriorityTaskWoken) != pdPASS)
-			return false;
-		else
-		{
-			if (xTimerStartFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS)
-				return false;
-		}
-	}
-	else
-	{
-		if (xTimerChangePeriod(&this->m_timer, ticks, 0) != pdPASS)
-			return false;
-		else
-		{
-		if (xTimerStart(&this->m_timer, 0) != pdPASS)
-			return false;
-		}
-	}
-	return true;
+    portTickType ticks = ms / portTICK_RATE_MS;
+    if(FE_IS_IN_ISR())
+    {
+        portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+        if (xTimerChangePeriodFromISR(&this->m_timer, ticks, &xHigherPriorityTaskWoken) != pdPASS)
+            return false;
+        else
+        {
+            if (xTimerStartFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS)
+                return false;
+        }
+    }
+    else
+    {
+        if (xTimerChangePeriod(&this->m_timer, ticks, 0) != pdPASS)
+            return false;
+        else
+        {
+        if (xTimerStart(&this->m_timer, 0) != pdPASS)
+            return false;
+        }
+    }
+    return true;
 }
 
 bool OSTimer::stop()
 {
-	if(FE_IS_IN_ISR())
-	{
-		portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-		if (xTimerStopFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS) {
-		  return false;
-		}
-	}
-	else
-	{
-		if (xTimerStop(&this->m_timer, 0) != pdPASS) {
-		  return false;
-		}
-	}
-	return true;
+    if(FE_IS_IN_ISR())
+    {
+        portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+        if (xTimerStopFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS) {
+          return false;
+        }
+    }
+    else
+    {
+        if (xTimerStop(&this->m_timer, 0) != pdPASS) {
+          return false;
+        }
+    }
+    return true;
 }
 
 bool OSTimer::reset()
 {
-	bool ret = true;
-	if(FE_IS_IN_ISR())
-	{
-		portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-		if(xTimerResetFromISR(&this->m_timer, &xHigherPriorityTaskWoken ) != pdPASS)
-			ret = false;
-	}
-	else
-	{
-		if(xTimerReset(&this->m_timer, 0) != pdPASS)
-					ret = false;
-	}
-	return ret;
+    bool ret = true;
+    if(FE_IS_IN_ISR())
+    {
+        portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+        if(xTimerResetFromISR(&this->m_timer, &xHigherPriorityTaskWoken ) != pdPASS)
+            ret = false;
+    }
+    else
+    {
+        if(xTimerReset(&this->m_timer, 0) != pdPASS)
+                    ret = false;
+    }
+    return ret;
 }
 
 void OSTimer::expired()
 {
-	if(this->m_cb != NULL)
-		this->m_cb->expired(this);
+    if(this->m_cb != NULL)
+        this->m_cb->expired(this);
 }
 
 } /* namespace FEmbed */
