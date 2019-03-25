@@ -35,33 +35,41 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 /**
  * Idle Task use mini stack size.
  */
+static __ccm StaticTask_t xIdleTaskTCB;
+static __ccm StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 void vApplicationGetIdleTaskMemory(
         StaticTask_t **ppxIdleTaskTCBBuffer,
         StackType_t **ppxIdleTaskStackBuffer,
         uint32_t *pulIdleTaskStackSize )
 {
-    static __ccm StaticTask_t xIdleTaskTCB;
-    static __ccm StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
-
     *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
     *ppxIdleTaskStackBuffer = uxIdleTaskStack;
     *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }
 
+void *pvGetIdleTaskHandler()
+{
+    return &xIdleTaskTCB;
+}
+
 /**
  * Must implement timer for common use.
  */
+static __ccm StaticTask_t xTimerTaskTCB;
+static __ccm StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 void vApplicationGetTimerTaskMemory(
         StaticTask_t **ppxTimerTaskTCBBuffer,
         StackType_t **ppxTimerTaskStackBuffer,
         uint32_t *pulTimerTaskStackSize )
 {
-    static __ccm StaticTask_t xIdleTaskTCB;
-    static __ccm StackType_t uxIdleTaskStack[ configTIMER_TASK_STACK_DEPTH ];
-
-    *ppxTimerTaskTCBBuffer = &xIdleTaskTCB;
-    *ppxTimerTaskStackBuffer = uxIdleTaskStack;
+    *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+    *ppxTimerTaskStackBuffer = uxTimerTaskStack;
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
+
+void *pvGetTimerTaskHandler()
+{
+    return &xTimerTaskTCB;
 }
 
 /******************************************************************************

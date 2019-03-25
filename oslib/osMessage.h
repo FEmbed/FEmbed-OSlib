@@ -27,81 +27,81 @@
 namespace FEmbed {
 class OSMessagePrivateData {
 public:
-	xQueueHandle m_msg;
+    xQueueHandle m_msg;
 };
 
 template<typename T = uint32_t, int len = 16>
 class OSMessage {
 public:
 
-	OSMessage() {
-		this->d_ptr = new OSMessagePrivateData();
-		assert(this->d_ptr);
-		this->d_ptr->m_msg = xQueueCreate(len, sizeof(T));
-		assert(this->d_ptr->m_msg);
-	}
+    OSMessage() {
+        this->d_ptr = new OSMessagePrivateData();
+        assert(this->d_ptr);
+        this->d_ptr->m_msg = xQueueCreate(len, sizeof(T));
+        assert(this->d_ptr->m_msg);
+    }
 
-	virtual ~OSMessage()
-	{
-		vQueueDelete(this->d_ptr->m_msg);
-		delete this->d_ptr;
-	}
+    virtual ~OSMessage()
+    {
+        vQueueDelete(this->d_ptr->m_msg);
+        delete this->d_ptr;
+    }
 
-	void put(T& item)
-	{
-		// if(interrupt)
-		// {
-		// }
-		// else
-		xQueueSend(this->d_ptr->m_msg, &item, portMAX_DELAY);
-	}
+    void put(T& item)
+    {
+        // if(interrupt)
+        // {
+        // }
+        // else
+        xQueueSend(this->d_ptr->m_msg, &item, portMAX_DELAY);
+    }
 
-	bool tryPut(T& item, uint32_t ms = 0)
-	{
-		portTickType ticks;
-		ticks = ms / portTICK_RATE_MS;
-		if (ticks == 0) {
-			ticks = 1;
-		}
+    bool tryPut(T& item, uint32_t ms = 0)
+    {
+        portTickType ticks;
+        ticks = ms / portTICK_RATE_MS;
+        if (ticks == 0) {
+            ticks = 1;
+        }
 
-		// if(interrupt)
-		// {
-		// }
-		// else
-		if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
-			return false;
-		}
-		return true;
-	}
+        // if(interrupt)
+        // {
+        // }
+        // else
+        if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
+            return false;
+        }
+        return true;
+    }
 
-	void get(T *item)
-	{
-		// if(interrupt)
-		// {
-		// }
-		// else
-		xQueueReceive(this->d_ptr->m_msg, item, portMAX_DELAY);
-	}
+    void get(T *item)
+    {
+        // if(interrupt)
+        // {
+        // }
+        // else
+        xQueueReceive(this->d_ptr->m_msg, item, portMAX_DELAY);
+    }
 
-	bool tryGet(T *item, uint32_t ms = 0)
-	{
-		portTickType ticks;
-		ticks = ms / portTICK_RATE_MS;
-		if (ticks == 0) {
-			ticks = 1;
-		}
+    bool tryGet(T *item, uint32_t ms = 0)
+    {
+        portTickType ticks;
+        ticks = ms / portTICK_RATE_MS;
+        if (ticks == 0) {
+            ticks = 1;
+        }
 
-		// if(interrupt)
-		// {
-		// }
-		// else
-		if (xQueueSend(this->d_ptr->m_msg, item, ticks) != pdTRUE) {
-			return false;
-		}
-		return true;
-	}
+        // if(interrupt)
+        // {
+        // }
+        // else
+        if (xQueueReceive(this->d_ptr->m_msg, item, ticks) != pdTRUE) {
+            return false;
+        }
+        return true;
+    }
 private:
-	OSMessagePrivateData *d_ptr;
+    OSMessagePrivateData *d_ptr;
 };
 
 } /* namespace FEmbed */
