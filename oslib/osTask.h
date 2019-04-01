@@ -29,10 +29,10 @@ class OSTaskPrivateData;
 
 class OSTaskPrivateData {
 public:
-	class OSTask *m_task;
-	TaskHandle_t  handle;					///< use to handle current os tid.
-	QueueHandle_t m_lock;
-	bool m_is_run;
+    class OSTask *m_task;
+    TaskHandle_t  handle;                    ///< use to handle current os tid.
+    QueueHandle_t m_lock;
+    bool m_is_run;
 };
 
 /**
@@ -40,39 +40,39 @@ public:
  */
 class OSTask {
 public:
-	OSTask(const char* name,
-			unsigned int stack_size = 4096,
-			unsigned int priority = configMAX_PRIORITIES
-			);
-	virtual ~OSTask();
+    OSTask(const char* name,
+            unsigned int stack_size = 4096,
+            unsigned int priority = configMAX_PRIORITIES
+            );
+    virtual ~OSTask();
 
-	void start();
-	void stop();
-	void exit(int signal);
-	bool isRun();
-	uint32_t priority();
-	char *name();
-    void delay(uint32_t ms);
-	virtual void loop();
+    void start();
+    void stop();
+    void exit(int signal);
+    bool isRun();
+    uint32_t priority();
+    char *name();
+    virtual void delay(uint32_t ms);
+    virtual void loop();
 
-	/**
-	 * static delay function for RTOS.
-	 * @param ms delay millisec for current thread.
-	 */
-	static void osInit();
-	static OSTask* currentTask();
-	static int currentTick();
+    /**
+     * static delay function for RTOS.
+     * @param ms delay millisec for current thread.
+     */
+    static void osInit();
+    static OSTask* currentTask();
+    static int currentTick();
 protected:
-	void lock();
-	void unlock();
+    void lock();
+    void unlock();
 
-	int m_exit;
+    int m_exit;
 
 private:
-	OSTaskPrivateData *d_ptr;
+    OSTaskPrivateData *d_ptr;
 };
 
-	// static global delay
-	void osDelay(uint32_t ms);
+    // static global delay
+    void osDelay(uint32_t ms);
 }
 #endif /* __FE_FASTEMBEDDED_TASK_H__ */
