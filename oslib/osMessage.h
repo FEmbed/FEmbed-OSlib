@@ -68,7 +68,7 @@ public:
         // {
         // }
         // else
-        if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
+        if (xQueueSend(this->d_ptr->m_msg, &item, ms != 0?ticks:0) != pdTRUE) {
             return false;
         }
         return true;
@@ -95,7 +95,7 @@ public:
         // {
         // }
         // else
-        if (xQueueReceive(this->d_ptr->m_msg, item, ticks) != pdTRUE) {
+        if (xQueueReceive(this->d_ptr->m_msg, item, ms != 0?ticks:0) != pdTRUE) {
             return false;
         }
         return true;
