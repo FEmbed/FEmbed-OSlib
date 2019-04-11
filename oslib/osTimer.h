@@ -35,7 +35,7 @@ public:
 
 class OSTimer {
 public:
-	OSTimer(OSTimerCallback *cb, bool reload, void* argument);
+	OSTimer(OSTimerCallback *cb, bool reload);
 	virtual ~OSTimer();
 
 	bool start(uint32_t ms);

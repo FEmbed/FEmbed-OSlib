@@ -12,6 +12,8 @@
 #include "semphr.h"
 #include "task.h"
 
+#include "driver.h"
+
 namespace FEmbed {
 
 class OSMutexPrivateData {
@@ -33,12 +35,19 @@ OSMutex::~OSMutex() {
 
 void OSMutex::lock()
 {
+    BaseType_t TaskWoken = 0;
     if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-        xSemaphoreTake(this->d_ptr->m_mutex, portMAX_DELAY);
+    {
+        if(FE_IS_IN_ISR())
+            xSemaphoreTakeFromISR(this->d_ptr->m_mutex, &TaskWoken);
+        else
+            xSemaphoreTake(this->d_ptr->m_mutex, portMAX_DELAY);
+    }
 }
 
 bool OSMutex::tryLock(uint32_t ms)
 {
+    BaseType_t TaskWoken = 0;
     portTickType ticks;
     ticks = ms / portTICK_RATE_MS;
     if (ticks == 0) {
@@ -47,16 +56,34 @@ bool OSMutex::tryLock(uint32_t ms)
 
     if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
     {
-        if(xSemaphoreTake(this->d_ptr->m_mutex, ticks) != pdTRUE)
-            return false;
+        if(FE_IS_IN_ISR())
+        {
+            if(xSemaphoreTakeFromISR(this->d_ptr->m_mutex, &TaskWoken) != pdTRUE)
+                return false;
+        }
+        else
+        {
+            if(xSemaphoreTake(this->d_ptr->m_mutex, ticks) != pdTRUE)
+                return false;
+        }
     }
     return true;
 }
 
 void OSMutex::unlock()
 {
+    BaseType_t TaskWoken = 0;
     if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-        xSemaphoreGive(this->d_ptr->m_mutex);
+    {
+        if(FE_IS_IN_ISR())
+        {
+            xSemaphoreGiveFromISR(this->d_ptr->m_mutex, &TaskWoken);
+        }
+        else
+        {
+            xSemaphoreGive(this->d_ptr->m_mutex);
+        }
+    }
 }
 
 

@@ -18,8 +18,8 @@
 #ifndef __FE_FASTEMBEDDED_OS_MUTEX_H__
 #define __FE_FASTEMBEDDED_OS_MUTEX_H__
 
-#include <stdint.h>
-#include <assert.h>
+#include <cstdint>
+#include <cassert>
 
 #include "FreeRTOS.h"
 #include "semphr.h"

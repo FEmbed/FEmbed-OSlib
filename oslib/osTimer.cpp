@@ -27,13 +27,14 @@ static void TimerCallback(TimerHandle_t timer)
     os_timer->expired();
 }
 
-OSTimer::OSTimer(OSTimerCallback *cb, bool reload, void* argument)
+OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
 {
+    uint32_t timer_id;
     TimerHandle_t timer = xTimerCreateStatic(
             "FE:Timer",
             1,
             reload? pdTRUE : pdFALSE,
-            argument,
+            &timer_id,
             TimerCallback,
             &this->m_timer);
     assert(&this->m_timer == timer);
@@ -61,12 +62,12 @@ bool OSTimer::start(uint32_t ms)
     }
     else
     {
-        if (xTimerChangePeriod(&this->m_timer, ticks, 0) != pdPASS)
+        if (xTimerChangePeriod(&this->m_timer, ticks, portMAX_DELAY) != pdPASS)
             return false;
         else
         {
-        if (xTimerStart(&this->m_timer, 0) != pdPASS)
-            return false;
+            if (xTimerStart(&this->m_timer, portMAX_DELAY) != pdPASS)
+                return false;
         }
     }
     return true;
@@ -78,13 +79,13 @@ bool OSTimer::stop()
     {
         portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
         if (xTimerStopFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS) {
-          return false;
+            return false;
         }
     }
     else
     {
-        if (xTimerStop(&this->m_timer, 0) != pdPASS) {
-          return false;
+        if (xTimerStop(&this->m_timer, portMAX_DELAY) != pdPASS) {
+            return false;
         }
     }
     return true;
@@ -101,8 +102,8 @@ bool OSTimer::reset()
     }
     else
     {
-        if(xTimerReset(&this->m_timer, 0) != pdPASS)
-                    ret = false;
+        if(xTimerReset(&this->m_timer, portMAX_DELAY) != pdPASS)
+            ret = false;
     }
     return ret;
 }

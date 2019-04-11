@@ -49,6 +49,7 @@ public:
 	bool wait(uint32_t ms = 0xFFFFFFFF)
 	{
 		portTickType ticks;
+	    BaseType_t TaskWoken = 0;
 		if(0xFFFFFFFF == ms)
 		{
 			ticks = portMAX_DELAY;
@@ -61,19 +62,30 @@ public:
 			}
 		}
 
-		// TODO interrupt...
-		if (xSemaphoreTake(this->m_sem, ticks) != pdTRUE) {
-			return false;
+		if(FE_IS_IN_ISR())
+		{
+            if (xSemaphoreTakeFromISR(this->m_sem, &TaskWoken) != pdTRUE) return false;
+		}
+		else
+		{
+		    if (xSemaphoreTake(this->m_sem, ticks) != pdTRUE) return false;
 		}
 		return true;
 	}
 
 	bool release()
 	{
-		// TODO interrupt...
-		if (xSemaphoreGive(this->m_sem) != pdTRUE) {
-			return false;
-		}
+        BaseType_t TaskWoken = 0;
+        if(FE_IS_IN_ISR())
+        {
+            if (xSemaphoreGiveFromISR(this->m_sem, &TaskWoken) != pdTRUE)
+                return false;
+        }
+        else
+        {
+            if (xSemaphoreGive(this->m_sem) != pdTRUE)
+                return false;
+        }
 		return true;
 	}
 private:

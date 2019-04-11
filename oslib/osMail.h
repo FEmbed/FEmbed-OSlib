@@ -24,6 +24,8 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
+#include "driver.h"
+
 namespace FEmbed {
 class OSMailPrivateData {
 public:
@@ -49,35 +51,41 @@ public:
 
 	virtual ~OSMail()
 	{
-		vQueueDelete(this->d_ptr->m_msg);
+        vQueueDelete(this->d_ptr->m_msg);
 		delete this->d_ptr;
 	}
 
 	template<class mail, int len>
 	void put(mail *item)
 	{
-		// if(interrupt)
-		// {
-		// }
-		// else
-		xQueueSend(this->d_ptr->m_msg, &item, portMAX_DELAY);
+	    BaseType_t TaskWoken = pdFALSE;
+	    if(FE_IS_IN_ISR())
+	        xQueueSendFromISR(this->d_ptr->m_msg, &item, TaskWoken);
+	    else
+	        xQueueSend(this->d_ptr->m_msg, &item, portMAX_DELAY);
 	}
 
 	template<class mail, int len>
 	bool tryPut(mail *item, uint32_t ms = 0)
 	{
 		portTickType ticks;
+        BaseType_t TaskWoken = pdFALSE;
 		ticks = ms / portTICK_RATE_MS;
 		if (ticks == 0) {
 			ticks = 1;
 		}
 
-		// if(interrupt)
-		// {
-		// }
-		// else
-		if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
-			return false;
+		if(FE_IS_IN_ISR())
+		{
+            if (xQueueSend(this->d_ptr->m_msg, &item, TaskWoken) != pdTRUE) {
+                return false;
+            }
+		}
+		else
+		{
+            if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
+                return false;
+            }
 		}
 		return true;
 	}
@@ -85,18 +93,19 @@ public:
 	template<class mail, int len>
 	mail *get()
 	{
+        BaseType_t TaskWoken = pdFALSE;
 		mail *item;
-		// if(interrupt)
-		// {
-		// }
-		// else
-		xQueueReceive(this->d_ptr->m_msg, &item, portMAX_DELAY);
+		if(FE_IS_IN_ISR())
+		    xQueueReceiveFromISR(this->d_ptr->m_msg, &item, TaskWoken);
+		else
+		    xQueueReceive(this->d_ptr->m_msg, &item, portMAX_DELAY);
 		return item;
 	}
 
 	template<class mail, int len>
 	mail *tryGet(uint32_t ms = 0)
 	{
+        BaseType_t TaskWoken = pdFALSE;
 		mail *item;
 		portTickType ticks;
 		ticks = ms / portTICK_RATE_MS;
@@ -104,12 +113,17 @@ public:
 			ticks = 1;
 		}
 
-		// if(interrupt)
-		// {
-		// }
-		// else
-		if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
-			return NULL;
+		if(FE_IS_IN_ISR())
+		{
+            if (xQueueSendFromISR(this->d_ptr->m_msg, &item, TaskWoken) != pdTRUE) {
+                return NULL;
+            }
+		}
+		else
+		{
+            if (xQueueSend(this->d_ptr->m_msg, &item, ticks) != pdTRUE) {
+                return NULL;
+            }
 		}
 		return item;
 	}
