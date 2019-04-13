@@ -69,7 +69,7 @@ public:
 
         if(FE_IS_IN_ISR())
         {
-            if (xQueueSendFromISR(this->d_ptr->m_msg, &item, TaskWoken) != pdTRUE)
+            if (xQueueSendFromISR(this->d_ptr->m_msg, &item, &TaskWoken) != pdTRUE)
                 return false;
         }
         else
@@ -100,7 +100,7 @@ public:
 
         if(FE_IS_IN_ISR())
         {
-            if (xQueueReceiveFromISR(this->d_ptr->m_msg, item, TaskWoken) != pdTRUE) {
+            if (xQueueReceiveFromISR(this->d_ptr->m_msg, item, &TaskWoken) != pdTRUE) {
                 return false;
             }
         }
