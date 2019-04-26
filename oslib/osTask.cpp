@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "osTask.h"
-#include "driver.h"
+#include "fe_target_ticks.h"
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
@@ -188,17 +188,12 @@ OSTask* OSTask::currentTask()
 
 int OSTask::currentTick()
 {
-    if(FE_IS_IN_ISR())
-        return xTaskGetTickCountFromISR();
-    else
-        return xTaskGetTickCount();
-
+    return fe_get_ticks();
 }
 
 void osDelay(uint32_t ms)
 {
-    portTickType ticks = ms / portTICK_RATE_MS;
-    vTaskDelay(ticks ? ticks : 1);
+    fe_delay(ms);
 }
 
 }
