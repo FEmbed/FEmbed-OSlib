@@ -61,7 +61,7 @@ public:
      */
     static void osInit();
     static OSTask* currentTask();
-    static int currentTick();
+    static uint32_t currentTick();
 protected:
     void lock();
     void unlock();

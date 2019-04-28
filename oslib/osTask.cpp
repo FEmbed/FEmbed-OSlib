@@ -186,7 +186,7 @@ OSTask* OSTask::currentTask()
     return NULL;
 }
 
-int OSTask::currentTick()
+uint32_t OSTask::currentTick()
 {
     return fe_get_ticks();
 }
