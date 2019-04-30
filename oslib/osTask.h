@@ -23,6 +23,8 @@
 #include "task.h"
 #include "semphr.h"
 
+#include "WatchDog.h"
+
 namespace FEmbed {
 class OSTask;
 class OSTaskPrivateData;
@@ -46,12 +48,13 @@ public:
             );
     virtual ~OSTask();
 
-    void start();
+    void start(shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
     void stop();
     void exit(int signal);
     bool isRun();
     uint32_t priority();
     char *name();
+    virtual void feedDog();
     virtual void delay(uint32_t ms);
     virtual void loop();
 
@@ -66,6 +69,8 @@ protected:
     void lock();
     void unlock();
 
+    shared_ptr<FEmbed::WatchDog> m_wd;
+    uint32_t m_wd_mask;
     int m_exit;
 
 private:

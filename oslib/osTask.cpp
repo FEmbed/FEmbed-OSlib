@@ -105,8 +105,10 @@ OSTask::~OSTask() {
     vTaskDelete(handle);
 }
 
-void OSTask::start()
+void OSTask::start(shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
 {
+    m_wd = wd;
+    m_wd_mask = mask;
     this->d_ptr->m_is_run = true;
     vTaskResume(this->d_ptr->handle);
 }
@@ -147,6 +149,12 @@ void OSTask::loop()
 {
     //Must override this function for real do.
     delete this;
+}
+
+void OSTask::feedDog()
+{
+    if(m_wd)
+        m_wd->feedWatchDog(m_wd_mask);
 }
 
 void OSTask::lock()
