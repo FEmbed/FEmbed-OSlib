@@ -83,6 +83,8 @@
 #ifdef CONFIG_VENDOR_ST
 #ifdef STM32F4xx
     #include "stm32f4xx.h"
+#elif defined(STM32L4xx)
+    #include "stm32l4xx.h"
 #elif defined(STM32F3xx)
     #include "stm32f3xx.h"
 #elif defined(STM32F2xx)
