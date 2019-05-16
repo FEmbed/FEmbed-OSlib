@@ -128,11 +128,9 @@
 #define configTIMER_TASK_STACK_DEPTH            ( 512 )
 
 //Lower Power
-#ifndef DEBUG
 #define configUSE_TICKLESS_IDLE                  1
-#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP    2
+#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP    5
 #define configCHECK_FOR_STACK_OVERFLOW           1
-#endif
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES                    0
