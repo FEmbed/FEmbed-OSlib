@@ -62,7 +62,7 @@
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
-
+#include "app.h"
 /*-----------------------------------------------------------
  * Application specific definitions.
  *
@@ -125,7 +125,9 @@
 #define configUSE_TIMERS                         1
 #define configTIMER_TASK_PRIORITY               ( configMAX_PRIORITIES - 1 )
 #define configTIMER_QUEUE_LENGTH                 16
+#ifndef configTIMER_TASK_STACK_DEPTH
 #define configTIMER_TASK_STACK_DEPTH            ( 512 )
+#endif
 
 //Lower Power
 #define configUSE_TICKLESS_IDLE                  1
