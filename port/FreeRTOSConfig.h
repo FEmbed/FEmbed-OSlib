@@ -81,19 +81,7 @@
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
 #ifdef CONFIG_VENDOR_ST
-#ifdef STM32F4xx
-    #include "stm32f4xx.h"
-#elif defined(STM32L4xx)
-    #include "stm32l4xx.h"
-#elif defined(STM32F3xx)
-    #include "stm32f3xx.h"
-#elif defined(STM32F2xx)
-    #include "stm32f2xx.h"
-#elif defined(STM32F1xx)
-    #include "stm32f1xx.h"
-#elif defined(STM32F0xx)
-    #include "stm32f0xx.h"
-#endif
+    extern uint32_t SystemCoreClock;
     #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #else
     #define configCPU_CLOCK_HZ                       ( 120000000 )
