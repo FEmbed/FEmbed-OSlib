@@ -11,15 +11,11 @@
 // We only use static create task method.
 void *pvPortMalloc(size_t xWantedSize) {
 	void *ptr;
-	vPortEnterCritical();
 	ptr = malloc(xWantedSize);
-	vPortExitCritical();
 	return ptr;
 }
 void vPortFree(void *pv) {
-	vPortEnterCritical();
 	free(pv);
-	vPortExitCritical();
 }
 
 void vApplicationMallocFailedHook( void )
