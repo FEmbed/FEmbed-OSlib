@@ -44,6 +44,8 @@ OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
 
 OSTimer::~OSTimer()
 {
+	this->stop();
+	xTimerDelete(&this->m_timer, 0);
 }
 
 bool OSTimer::start(uint32_t ms)
