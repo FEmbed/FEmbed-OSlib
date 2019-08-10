@@ -411,9 +411,6 @@ void freertos_global_init()
     xMinimumEverFreeBytesRemaining = xTotalHeapSize;
     xFreeBytesRemaining = xTotalHeapSize;
 
-    /* Check something was actually defined before it is accessed. */
-    configASSERT( xTotalHeapSize );
-
     /* Work out the position of the top bit in a size_t variable. */
     xBlockAllocatedBit = ( ( size_t ) 1 ) << ( ( sizeof( size_t ) * heapBITS_PER_BYTE ) - 1 );
 }
