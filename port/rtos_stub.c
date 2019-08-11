@@ -339,7 +339,7 @@ void freertos_global_init()
         unsigned *region_begin = (unsigned int*) (*p++);
         uint32_t region_size = (uint32_t) (*p++);
 
-        while( region_size > 0 )
+        if( region_size > 0 )
         {
             xTotalRegionSize = region_size;
 
@@ -415,5 +415,5 @@ void freertos_global_init()
     xBlockAllocatedBit = ( ( size_t ) 1 ) << ( ( sizeof( size_t ) * heapBITS_PER_BYTE ) - 1 );
 }
 
-FE_INIT(freertos_global_init, 8)
+FE_INIT(freertos_global_init, 1)
 #endif
