@@ -50,10 +50,6 @@ void *dma_alloc(size_t xWantedSize) {
                     /* Byte alignment required. */
                     xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
                 }
-                else
-                {
-                    assert(0);
-                }
             }
             else
             {
@@ -173,14 +169,6 @@ void dma_free(void *pv) {
                 }
                 ( void ) xTaskResumeAll();
             }
-            else
-            {
-                mtCOVERAGE_TEST_MARKER();
-            }
-        }
-        else
-        {
-            mtCOVERAGE_TEST_MARKER();
         }
     }
 }
