@@ -31,10 +31,9 @@ static size_t xMinimumEverFreeBytesRemaining = 0U;
 static size_t xBlockAllocatedBit = 0;
 
 /* reference heap_5.c for details */
-void *dma_alloc(size_t xWantedSize) {
+void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
     void *pvReturn = NULL;
-    if(xFreeBytesRemaining == 0) return malloc(xWantedSize);
 
     configASSERT( pxEnd );
 
@@ -61,7 +60,8 @@ void *dma_alloc(size_t xWantedSize) {
                 /* Traverse the list from the start (lowest address) block until one of adequate size is found. */
                 pxPreviousBlock = &xStart;
                 pxBlock = xStart.pxNextFreeBlock;
-                while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+                while( !(pxBlock >= xWantedStart && pxBlock < xWantedEnd) ||
+                         (( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL )) )
                 {
                     pxPreviousBlock = pxBlock;
                     pxBlock = pxBlock->pxNextFreeBlock;
@@ -133,16 +133,13 @@ void *dma_alloc(size_t xWantedSize) {
     return pvReturn;
 }
 
-void dma_free(void *pv) {
+void rtos_free(void *pv) {
     uint8_t *puc = ( uint8_t * ) pv;
     BlockLink_t *pxLink;
 
-    if(xFreeBytesRemaining == 0) { free(pv); return; }
-
     if( pv != NULL )
     {
-        /* The memory being freed will have an BlockLink_t structure immediately
-        before it. */
+        /* The memory being freed will have an BlockLink_t structure immediately before it. */
         puc -= xHeapStructSize;
 
         /* This casting is to keep the compiler from issuing warnings. */
@@ -156,8 +153,7 @@ void dma_free(void *pv) {
         {
             if( pxLink->pxNextFreeBlock == NULL )
             {
-                /* The block is being returned to the heap - it is no longer
-                allocated. */
+                /* The block is being returned to the heap - it is no longer allocated. */
                 pxLink->xBlockSize &= ~xBlockAllocatedBit;
 
                 vTaskSuspendAll();
@@ -171,6 +167,23 @@ void dma_free(void *pv) {
             }
         }
     }
+}
+
+extern char         DMA_START[];
+extern char         DMA_LIMIT[];
+void *rtos_alloc(size_t xWantedSize)
+{
+    return common_alloc(xWantedSize, NULL, (void *)0xffffffff);
+}
+
+void *dma_alloc(size_t xWantedSize)
+{
+    return common_alloc(xWantedSize, DMA_START, DMA_START + (uint32_t)DMA_LIMIT);
+}
+
+void dma_free(void *pv)
+{
+    return rtos_free(pv);
 }
 
 size_t xPortGetFreeHeapSize( void )
