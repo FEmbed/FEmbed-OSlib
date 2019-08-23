@@ -367,16 +367,11 @@ void freertos_global_init()
             }
             else
             {
-                /* Should only get here if one region has already been added to the
-                heap. */
                 configASSERT( pxEnd != NULL );
-
-                /* Check blocks are passed in with increasing start addresses. */
                 configASSERT( xAddress > ( size_t ) pxEnd );
             }
 
-            /* Remember the location of the end marker in the previous region, if
-            any. */
+            /* Remember the location of the end marker in the previous region, if any. */
             pxPreviousFreeBlock = pxEnd;
 
             /* pxEnd is used to mark the end of the list of free blocks and is
