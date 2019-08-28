@@ -51,7 +51,8 @@ namespace FEmbed {
 OSTask::OSTask(
         const char* name,
         unsigned int stack_size,
-        unsigned int priority
+        unsigned int priority,
+        unsigned int flags
         ) {
 #ifdef TRACE_MEM
     // Trace OSTask start memory map
@@ -62,9 +63,16 @@ OSTask::OSTask(
 
     assert((stack_size % sizeof(StackType_t)) == 0);
     vPortEnterCritical();
-    stack_ptr = (StackType_t *) malloc(stack_size);
-
-    task_ptr = (StaticTask_t *) malloc(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
+    if(FE_OSTASK_FLAG_DMA_STACK & flags)
+    {
+        stack_ptr = (StackType_t *) DMA_MALLOC(stack_size);
+        task_ptr = (StaticTask_t *) DMA_MALLOC(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
+    }
+    else
+    {
+        stack_ptr = (StackType_t *) malloc(stack_size);
+        task_ptr = (StaticTask_t *) malloc(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
+    }
     this->d_ptr = (OSTaskPrivateData *)((uint8_t *)task_ptr + STATICTASK_SIZE);
 
     this->d_ptr->m_is_run = false;

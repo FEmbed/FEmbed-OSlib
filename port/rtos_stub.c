@@ -50,10 +50,6 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
                     xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
                 }
             }
-            else
-            {
-                return NULL;    ///< no wanted size
-            }
 
             if( ( xWantedSize > 0 ) && ( xWantedSize <= xFreeBytesRemaining ) )
             {
