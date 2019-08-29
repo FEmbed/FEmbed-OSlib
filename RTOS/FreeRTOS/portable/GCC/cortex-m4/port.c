@@ -273,8 +273,8 @@ static void prvPortStartFirstTask( void )
 					" msr control, r0		\n"
 					" cpsie i				\n" /* Globally enable interrupts. */
 					" cpsie f				\n"
-					//" dsb					\n"
-					//" isb					\n"
+					" dsb					\n"
+					" isb					\n"
 					" svc 0					\n" /* System call to start first task. */
 					" nop					\n"
 				);

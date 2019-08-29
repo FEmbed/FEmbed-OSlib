@@ -25,6 +25,7 @@
 
 #include "WatchDog.h"
 
+#define FE_OSTASK_FEED_CURR_DOG                 FEmbed::OSTask::currentTask()->feedDog()
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
 
 namespace FEmbed {
