@@ -62,7 +62,7 @@ OSTask::OSTask(
     StackType_t *stack_ptr;
 
     assert((stack_size % sizeof(StackType_t)) == 0);
-    vPortEnterCritical();
+    taskENTER_CRITICAL();
     if(FE_OSTASK_FLAG_DMA_STACK & flags)
     {
         stack_ptr = (StackType_t *) DMA_MALLOC(stack_size);
@@ -74,7 +74,7 @@ OSTask::OSTask(
         task_ptr = (StaticTask_t *) malloc(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
     }
     this->d_ptr = (OSTaskPrivateData *)((uint8_t *)task_ptr + STATICTASK_SIZE);
-
+    log_v("Task %s-0x%08x create with stack 0x%08x.", name, task_ptr, stack_ptr);
     this->d_ptr->m_is_run = false;
     this->d_ptr->m_task = this;
 
@@ -92,7 +92,7 @@ OSTask::OSTask(
             (StackType_t * const)stack_ptr,
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == task_ptr);
-    vPortExitCritical();
+    taskEXIT_CRITICAL();
 }
 
 OSTask::~OSTask() {

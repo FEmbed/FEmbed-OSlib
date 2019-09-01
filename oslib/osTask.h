@@ -28,6 +28,9 @@
 #define FE_OSTASK_FEED_CURR_DOG                 FEmbed::OSTask::currentTask()->feedDog()
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
 
+#define FE_OSTAK_ENTER_CRITICAL                 taskENTER_CRITICAL
+#define FE_OSTAK_EXIT_CRITICAL                  taskEXIT_CRITICAL
+
 namespace FEmbed {
 class OSTask;
 class OSTaskPrivateData;
