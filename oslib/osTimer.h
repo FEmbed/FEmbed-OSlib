@@ -42,11 +42,15 @@ public:
 	bool stop();
 	bool reset();
 
+	uint32_t period();
+	uint32_t expiryTime();
+
 	void expired();
 
     StaticTimer_t m_timer;
 private:
 	OSTimerCallback *m_cb;
+	bool m_runnig;
 };
 
 } /* namespace FEmbed */

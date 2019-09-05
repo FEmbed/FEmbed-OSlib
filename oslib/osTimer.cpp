@@ -39,7 +39,8 @@ OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
             &this->m_timer);
     assert(&this->m_timer == timer);
     assert(this == FE_PARENT_OBJECT(OSTimer, m_timer, timer));
-    this->m_cb = cb;
+    m_cb = cb;
+    m_runnig = false;
 }
 
 OSTimer::~OSTimer()
@@ -72,6 +73,7 @@ bool OSTimer::start(uint32_t ms)
                 return false;
         }
     }
+    m_runnig = true;
     return true;
 }
 
@@ -90,8 +92,22 @@ bool OSTimer::stop()
             return false;
         }
     }
+    m_runnig = false;
     return true;
 }
+
+uint32_t OSTimer::period()
+{
+    return xTimerGetPeriod(&this->m_timer);
+}
+
+uint32_t OSTimer::expiryTime()
+{
+    if(m_runnig)
+        return xTimerGetExpiryTime(&this->m_timer);
+    return 0;
+}
+
 
 bool OSTimer::reset()
 {
