@@ -17,6 +17,16 @@
     "frameworks": "arduino",
     "platforms": "espressif8266",
     "build": {
+        "flags": [
+            "-I src",
+            "-I src/port/freertos/esp8266/include",
+            "-I src/freertos/include"
+        ],
+        "srcFilter":[
+            "+<*.c>",
+            "+<*.cpp>",
+            "+<*.h>"
+        ],
         "extraScript": "generate_headers.py"
     }
 }

@@ -29,7 +29,9 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#if !USE_ARDUINO
 #include "sdkconfig.h"
+#endif
 
 #ifndef __ASSEMBLER__
 #include <stdlib.h>

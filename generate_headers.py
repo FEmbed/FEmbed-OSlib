@@ -1,11 +1,9 @@
 Import('env')
+from os.path import join, realpath
+
 #print(env.Dump())
-env.Append(
-    CPPPATH=["src",
-             "port/esp8266/include/freertos",
-             "RTOS/FreeRTOS/include"]
-)
-print(env["PIOPLATFORM"]) #espressif8266
+if env["PIOPLATFORM"] == "espressif8266":
+    pass
 
 global_env = DefaultEnvironment()
 global_env.Append(
