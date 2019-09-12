@@ -177,6 +177,11 @@ void *dma_alloc(size_t xWantedSize)
     return common_alloc(xWantedSize, (void *)DMA_START, /*DMA_START + */(void *)DMA_LIMIT);
 }
 
+void *dma_calloc(size_t count, size_t xWantedSize)
+{
+    return dma_alloc(count*xWantedSize);
+}
+
 void dma_free(void *pv)
 {
     return rtos_free(pv);

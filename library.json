@@ -1,0 +1,18 @@
+{
+    "name": "FEmbed-OSlib",
+    "keywords": "FEmbed, Freertos, OS, RTOS",
+    "description": "Arduino library for OS common library with FreeRTOS",
+    "authors":
+    {
+        "name": "Gene Kong",
+        "email": "gyx_edu@qq.com",
+        "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
+    },
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "espressif8266"
+}

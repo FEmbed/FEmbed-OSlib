@@ -14,8 +14,6 @@
  * limitations under the License.
  *
  */
-
-
 #ifndef __FE_FASTEMBEDDED_OS_TASK_H__
 #define __FE_FASTEMBEDDED_OS_TASK_H__
 
@@ -31,6 +29,8 @@
 #define FE_OSTAK_ENTER_CRITICAL                 taskENTER_CRITICAL
 #define FE_OSTAK_EXIT_CRITICAL                  taskEXIT_CRITICAL
 
+typedef void (*fe_task_runable)(void *arg);
+
 namespace FEmbed {
 class OSTask;
 class OSTaskPrivateData;
@@ -40,6 +40,7 @@ public:
     class OSTask *m_task;
     TaskHandle_t  handle;                    ///< use to handle current os tid.
     QueueHandle_t m_lock;
+    fe_task_runable m_runable;
     bool m_is_run;
 };
 
@@ -58,6 +59,7 @@ public:
     void start(shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
     void stop();
     void exit(int signal);
+    void setRunable(fe_task_runable runable);
     bool isRun();
     uint32_t priority();
     char *name();

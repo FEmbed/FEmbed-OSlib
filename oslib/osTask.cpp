@@ -137,6 +137,12 @@ uint32_t OSTask::priority()
     return uxTaskPriorityGet(this->d_ptr->handle);
 }
 
+void OSTask::setRunable(fe_task_runable runable)
+{
+    if(this->d_ptr)
+        this->d_ptr->m_runable = runable;
+}
+
 void OSTask::exit(int signal)
 {
     (void) signal;
@@ -156,6 +162,8 @@ char *OSTask::name()
 void OSTask::loop()
 {
     //Must override this function for real do.
+    if(this->d_ptr->m_runable)
+        this->d_ptr->m_runable(this);
     delete this;
 }
 
