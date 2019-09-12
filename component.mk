@@ -8,7 +8,7 @@ COMPONENT_ADD_INCLUDEDIRS += src/freertos/include
 COMPONENT_ADD_INCLUDEDIRS += src/port/freertos/$(CONFIG_MCU)
 
 COMPONENT_SRCDIRS += src/port/freertos
-COMPONENT_SRCDIRS += src/freertos/include
+COMPONENT_SRCDIRS += src/freertos
 COMPONENT_SRCDIRS += src/port/freertos/$(CONFIG_MCU)
 endif
 
