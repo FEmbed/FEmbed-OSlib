@@ -15,5 +15,8 @@
     },
     "version": "0.1.0",
     "frameworks": "arduino",
-    "platforms": "espressif8266"
+    "platforms": "espressif8266",
+    "build": {
+        "extraScript": "generate_headers.py"
+    }
 }
