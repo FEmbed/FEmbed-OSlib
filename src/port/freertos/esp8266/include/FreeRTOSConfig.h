@@ -35,7 +35,7 @@
 
 #ifndef __ASSEMBLER__
 #include <stdlib.h>
-#include "rom/ets_sys.h"
+//#include "rom/ets_sys.h"
 #endif
 
 /*-----------------------------------------------------------
