@@ -2,7 +2,9 @@ Import('env')
 
 CPPDEFINES=[
     ("USE_OSLIB", 1),
-    ("USE_ARDUINO", 1)
+    ("USE_ESPRESSIF8266", 1),
+    ("configSUPPORT_STATIC_ALLOCATION", 1),
+    ("FE_IS_IN_ISR", "xPortInIsrContext")
 ]
 
 env.Append(

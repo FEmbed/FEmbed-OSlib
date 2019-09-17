@@ -1,7 +1,7 @@
 # Global project config
 
 ifeq ($(CONFIG_RTOS),y)
-CPPFLAGS += -DUSE_OSLIB=1
+CPPFLAGS += -DUSE_OSLIB=1 -DUSE_FEMBED=1
 endif
 
 

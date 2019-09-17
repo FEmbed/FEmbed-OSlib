@@ -16,8 +16,17 @@
  */
 
 #include "osTimer.h"
+#if USE_FEMBED
 #include "driver.h"
-#include "fe_list.h"
+#endif
+
+#ifndef FE_PARENT_OBJECT
+//  type:   father object type.
+// sitem:   child name in father object type.
+//   obj:   child object pointer
+#define FE_PARENT_OBJECT(type, sitem, obj) \
+    (type *)(((size_t)obj) - ((size_t) &(((type *)NULL)->sitem)))
+#endif
 
 namespace FEmbed {
 

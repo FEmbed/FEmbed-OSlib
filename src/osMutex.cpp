@@ -12,7 +12,9 @@
 #include "semphr.h"
 #include "task.h"
 
+#if USE_FEMBED
 #include "driver.h"
+#endif
 
 namespace FEmbed {
 

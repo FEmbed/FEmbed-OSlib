@@ -14,15 +14,15 @@
         "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
     },
     "version": "0.1.0",
-    "frameworks": "arduino",
-    "platforms": "espressif8266",
+    "frameworks": "esp8266-rtos-sdk",
+    "platforms": "custom8266",
     "build": {
         "flags": [
-            "-I src",
-            "-I src/port/freertos/esp8266/include",
-            "-I src/freertos/include"
+            "-I src"
         ],
         "srcFilter":[
+            "-<freertos>",
+            "-<port>",
             "+<*.c>",
             "+<*.cpp>",
             "+<*.h>"

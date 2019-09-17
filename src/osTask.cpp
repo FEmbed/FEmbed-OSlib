@@ -19,7 +19,10 @@
 #include <string.h>
 
 #include "osTask.h"
+
+#if USE_FEMBED
 #include "fe_target_ticks.h"
+#endif
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
@@ -63,18 +66,20 @@ OSTask::OSTask(
 
     assert((stack_size % sizeof(StackType_t)) == 0);
     taskENTER_CRITICAL();
+#if USE_FEMBED
     if(FE_OSTASK_FLAG_DMA_STACK & flags)
     {
         stack_ptr = (StackType_t *) DMA_MALLOC(stack_size);
         task_ptr = (StaticTask_t *) DMA_MALLOC(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
     }
     else
+#endif
+    (void) flags;
     {
         stack_ptr = (StackType_t *) malloc(stack_size);
         task_ptr = (StaticTask_t *) malloc(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
     }
     this->d_ptr = (OSTaskPrivateData *)((uint8_t *)task_ptr + STATICTASK_SIZE);
-    log_v("Task %s-0x%08x create with stack 0x%08x.", name, task_ptr, stack_ptr);
     this->d_ptr->m_is_run = false;
     this->d_ptr->m_task = this;
 
@@ -113,6 +118,7 @@ OSTask::~OSTask() {
     vTaskDelete(handle);
 }
 
+#if USE_FEMBED
 void OSTask::start(shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
 {
     m_wd = wd;
@@ -120,6 +126,13 @@ void OSTask::start(shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
     this->d_ptr->m_is_run = true;
     vTaskResume(this->d_ptr->handle);
 }
+#else
+void OSTask::start()
+{
+    this->d_ptr->m_is_run = true;
+    vTaskResume(this->d_ptr->handle);
+}
+#endif
 
 void OSTask::stop()
 {
@@ -169,8 +182,10 @@ void OSTask::loop()
 
 void OSTask::feedDog()
 {
+#if USE_FEMBED
     if(m_wd)
         m_wd->feedWatchDog(m_wd_mask);
+#endif
 }
 
 void OSTask::lock()
@@ -212,12 +227,24 @@ OSTask* OSTask::currentTask()
 
 uint32_t OSTask::currentTick()
 {
+#if USE_FEMBED    
     return fe_get_ticks();
+#else
+    if(FE_IS_IN_ISR())
+        return xTaskGetTickCountFromISR();
+    else
+        return xTaskGetTickCount();
+#endif
 }
 
 void osDelay(uint32_t ms)
 {
+#if USE_FEMBED   
     fe_delay(ms);
+#else
+    portTickType ticks = ms / portTICK_RATE_MS;
+    vTaskDelay(ticks ? ticks : 1);
+#endif
 }
 
 }
