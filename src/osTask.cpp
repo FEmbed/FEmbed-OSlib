@@ -73,9 +73,11 @@ OSTask::OSTask(
         task_ptr = (StaticTask_t *) DMA_MALLOC(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
     }
     else
+#else
+        (void) flags;
 #endif
-    (void) flags;
     {
+
         stack_ptr = (StackType_t *) malloc(stack_size);
         task_ptr = (StaticTask_t *) malloc(STATICTASK_SIZE + sizeof(OSTaskPrivateData));
     }
