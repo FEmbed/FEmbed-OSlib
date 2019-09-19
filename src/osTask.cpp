@@ -96,7 +96,7 @@ OSTask::OSTask(
             priority,
             (StackType_t * const)stack_ptr,
             (StaticTask_t * const)task_ptr);
-    assert(this->d_ptr->handle == task_ptr);
+    assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
     taskEXIT_CRITICAL();
 }
 

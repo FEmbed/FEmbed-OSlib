@@ -46,7 +46,7 @@ OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
             &timer_id,
             TimerCallback,
             &this->m_timer);
-    assert(&this->m_timer == timer);
+    assert((TimerHandle_t) &this->m_timer == timer);
     assert(this == FE_PARENT_OBJECT(OSTimer, m_timer, timer));
     m_cb = cb;
     m_runnig = false;
@@ -55,7 +55,7 @@ OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
 OSTimer::~OSTimer()
 {
 	this->stop();
-	xTimerDelete(&this->m_timer, 0);
+	xTimerDelete((TimerHandle_t) &this->m_timer, 0);
 }
 
 bool OSTimer::start(uint32_t ms)
@@ -64,21 +64,21 @@ bool OSTimer::start(uint32_t ms)
     if(FE_IS_IN_ISR())
     {
         portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-        if (xTimerChangePeriodFromISR(&this->m_timer, ticks, &xHigherPriorityTaskWoken) != pdPASS)
+        if (xTimerChangePeriodFromISR((TimerHandle_t) &this->m_timer, ticks, &xHigherPriorityTaskWoken) != pdPASS)
             return false;
         else
         {
-            if (xTimerStartFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS)
+            if (xTimerStartFromISR((TimerHandle_t) &this->m_timer, &xHigherPriorityTaskWoken) != pdPASS)
                 return false;
         }
     }
     else
     {
-        if (xTimerChangePeriod(&this->m_timer, ticks, portMAX_DELAY) != pdPASS)
+        if (xTimerChangePeriod((TimerHandle_t) &this->m_timer, ticks, portMAX_DELAY) != pdPASS)
             return false;
         else
         {
-            if (xTimerStart(&this->m_timer, portMAX_DELAY) != pdPASS)
+            if (xTimerStart((TimerHandle_t) &this->m_timer, portMAX_DELAY) != pdPASS)
                 return false;
         }
     }
@@ -91,13 +91,13 @@ bool OSTimer::stop()
     if(FE_IS_IN_ISR())
     {
         portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-        if (xTimerStopFromISR(&this->m_timer, &xHigherPriorityTaskWoken) != pdPASS) {
+        if (xTimerStopFromISR((TimerHandle_t) &this->m_timer, &xHigherPriorityTaskWoken) != pdPASS) {
             return false;
         }
     }
     else
     {
-        if (xTimerStop(&this->m_timer, portMAX_DELAY) != pdPASS) {
+        if (xTimerStop((TimerHandle_t) &this->m_timer, portMAX_DELAY) != pdPASS) {
             return false;
         }
     }
@@ -107,13 +107,13 @@ bool OSTimer::stop()
 
 uint32_t OSTimer::period()
 {
-    return xTimerGetPeriod(&this->m_timer);
+    return xTimerGetPeriod((TimerHandle_t) &this->m_timer);
 }
 
 uint32_t OSTimer::expiryTime()
 {
     if(m_runnig)
-        return xTimerGetExpiryTime(&this->m_timer);
+        return xTimerGetExpiryTime((TimerHandle_t) &this->m_timer);
     return 0;
 }
 
@@ -124,12 +124,12 @@ bool OSTimer::reset()
     if(FE_IS_IN_ISR())
     {
         portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-        if(xTimerResetFromISR(&this->m_timer, &xHigherPriorityTaskWoken ) != pdPASS)
+        if(xTimerResetFromISR((TimerHandle_t) &this->m_timer, &xHigherPriorityTaskWoken ) != pdPASS)
             ret = false;
     }
     else
     {
-        if(xTimerReset(&this->m_timer, portMAX_DELAY) != pdPASS)
+        if(xTimerReset((TimerHandle_t) &this->m_timer, portMAX_DELAY) != pdPASS)
             ret = false;
     }
     return ret;
