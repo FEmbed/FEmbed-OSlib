@@ -1,9 +1,8 @@
 Import('env')
 
 CPPDEFINES=[
-    ("USE_OSLIB", 1),
-    ("USE_ESPRESSIF8266", 1),
-    ("configSUPPORT_STATIC_ALLOCATION", 1),
+    ("USE_OSLIB", "1"),
+    ("USE_ESPRESSIF8266", "1"),
     ("FE_IS_IN_ISR", "xPortInIsrContext")
 ]
 
@@ -13,9 +12,10 @@ env.Append(
 
 from os.path import join, realpath
 
-#print(env.Dump())
-if env["PIOPLATFORM"] == "espressif8266":
+if env["PIOFRAMEWORK"] == "esp8266-rtos-sdk":
     pass
+
+#print(env.Dump())
 
 global_env = DefaultEnvironment()
 global_env.Append(

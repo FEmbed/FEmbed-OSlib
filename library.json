@@ -17,12 +17,11 @@
     "frameworks": "esp8266-rtos-sdk",
     "platforms": "custom8266",
     "build": {
-        "flags": [
-            "-I src"
-        ],
+        "includeDir": "src",
         "srcFilter":[
-            "-<freertos>",
+            "-<freertos/*.c>",
             "-<port>",
+            "+<port/freertos/Common>",
             "+<*.c>",
             "+<*.cpp>",
             "+<*.h>"

@@ -276,38 +276,57 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 {
     assert(0);
 }
+#endif
 
-/**
- * Idle Task use mini stack size.
- */
-static __ccm StaticTask_t xIdleTaskTCB;
-static __ccm StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+#if !defined(__ccm)
+#define __ccm
+#endif
+
+#if USE_ESPRESSIF8266
+#include "esp_log.h"
+#define FE_STATIC_IDLE_TASK_STATIC_SIZE         configIDLE_TASK_STACK_SIZE
+#define TASKTCB_SIZE                            (sizeof(StaticTask_t) + configNUM_THREAD_LOCAL_STORAGE_POINTERS*4)      ///Bug for patch...
+#else
+#define FE_STATIC_IDLE_TASK_STATIC_SIZE         configMINIMAL_STACK_SIZE
+#define TASKTCB_SIZE                            (sizeof(StaticTask_t))
+#endif
+
+StaticTask_t *xIdleTaskTCB = NULL;
+StackType_t *uxIdleTaskStack = NULL;
 void vApplicationGetIdleTaskMemory(
         StaticTask_t **ppxIdleTaskTCBBuffer,
         StackType_t **ppxIdleTaskStackBuffer,
         uint32_t *pulIdleTaskStackSize )
 {
-    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+    
+    xIdleTaskTCB = pvPortMalloc(TASKTCB_SIZE);
+    uxIdleTaskStack = pvPortMalloc(sizeof(StackType_t) * FE_STATIC_IDLE_TASK_STATIC_SIZE);
+
+    *ppxIdleTaskTCBBuffer = xIdleTaskTCB;
     *ppxIdleTaskStackBuffer = uxIdleTaskStack;
-    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+    *pulIdleTaskStackSize = FE_STATIC_IDLE_TASK_STATIC_SIZE;
+
 }
 
 void *pvGetIdleTaskHandler()
 {
-    return &xIdleTaskTCB;
+    return xIdleTaskTCB;
 }
 
 /**
  * Must implement timer for common use.
  */
-static __ccm StaticTask_t xTimerTaskTCB;
-static __ccm StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
+StaticTask_t *xTimerTaskTCB = NULL;
+StackType_t *uxTimerTaskStack = NULL;
 void vApplicationGetTimerTaskMemory(
         StaticTask_t **ppxTimerTaskTCBBuffer,
         StackType_t **ppxTimerTaskStackBuffer,
         uint32_t *pulTimerTaskStackSize )
 {
-    *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+    xTimerTaskTCB = pvPortMalloc(TASKTCB_SIZE);
+    uxTimerTaskStack = pvPortMalloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
+
+    *ppxTimerTaskTCBBuffer = xTimerTaskTCB;
     *ppxTimerTaskStackBuffer = uxTimerTaskStack;
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
@@ -317,6 +336,7 @@ void *pvGetTimerTaskHandler()
     return &xTimerTaskTCB;
 }
 
+#if CONFIG_RTOS_LIB_FREERTOS
 /******************************************************************************
  * freertos init function, will auto called by init function.
  ******************************************************************************/

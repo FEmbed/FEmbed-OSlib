@@ -3,11 +3,11 @@
 #
 
 ifeq ($(CONFIG_RTOS_LIB_FREERTOS),y)
-COMPONENT_ADD_INCLUDEDIRS += src/port/freertos
+COMPONENT_ADD_INCLUDEDIRS += src/port/freertos/Common/include
 COMPONENT_ADD_INCLUDEDIRS += src/freertos/include
 COMPONENT_ADD_INCLUDEDIRS += src/port/freertos/$(CONFIG_MCU)
 
-COMPONENT_SRCDIRS += src/port/freertos
+COMPONENT_SRCDIRS += src/port/freertos/Common
 COMPONENT_SRCDIRS += src/freertos
 COMPONENT_SRCDIRS += src/port/freertos/$(CONFIG_MCU)
 endif
