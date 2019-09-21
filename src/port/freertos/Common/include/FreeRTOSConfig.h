@@ -113,6 +113,13 @@
 #define configUSE_COUNTING_SEMAPHORES            1
 #define configSUPPORT_STATIC_ALLOCATION          1
 
+#ifdef CONFIG_ENABLE_PTHREAD
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
+#else
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 1
+#endif
+#define configTHREAD_LOCAL_STORAGE_DELETE_CALLBACKS 1
+
 /* Software timer definitions. */
 #define configUSE_TIMERS                         1
 #define configTIMER_TASK_PRIORITY               ( configMAX_PRIORITIES - 1 )
