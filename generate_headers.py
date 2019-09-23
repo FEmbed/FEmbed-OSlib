@@ -21,3 +21,4 @@ global_env = DefaultEnvironment()
 global_env.Append(
     CPPDEFINES=CPPDEFINES
 )
+#print(global_env.Dump())
