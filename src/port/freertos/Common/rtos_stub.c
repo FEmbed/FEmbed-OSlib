@@ -333,7 +333,7 @@ void vApplicationGetTimerTaskMemory(
 
 void *pvGetTimerTaskHandler()
 {
-    return &xTimerTaskTCB;
+    return xTimerTaskTCB;
 }
 
 #if CONFIG_RTOS_LIB_FREERTOS
