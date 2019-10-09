@@ -56,7 +56,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
                 /* Traverse the list from the start (lowest address) block until one of adequate size is found. */
                 pxPreviousBlock = &xStart;
                 pxBlock = xStart.pxNextFreeBlock;
-                while( !(pxBlock >= xWantedStart && pxBlock < xWantedEnd) ||
+                while( !((uint32_t)pxBlock >= (uint32_t)xWantedStart && (uint32_t)pxBlock < (uint32_t)xWantedEnd) ||
                          (( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL )) )
                 {
                     pxPreviousBlock = pxBlock;

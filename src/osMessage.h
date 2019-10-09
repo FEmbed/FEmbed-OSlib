@@ -24,8 +24,6 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-#include "driver.h"
-
 namespace FEmbed {
 class OSMessagePrivateData {
 public:

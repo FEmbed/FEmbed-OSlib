@@ -2,7 +2,6 @@ Import('env')
 
 CPPDEFINES=[
     ("USE_OSLIB", "1"),
-    ("USE_ESPRESSIF8266", "1"),
     ("FE_IS_IN_ISR", "xPortInIsrContext")
 ]
 
@@ -21,3 +20,4 @@ global_env = DefaultEnvironment()
 global_env.Append(
     CPPDEFINES=CPPDEFINES
 )
+#print(global_env.Dump())
