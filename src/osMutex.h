@@ -45,6 +45,20 @@ private:
 	OSMutexPrivateData *d_ptr;
 };
 
+class OSMutexLocker {
+ public:
+    OSMutexLocker(OSMutex *lk) {
+        _lk = lk;
+        assert(lk);
+        _lk->lock();
+    }
+
+    virtual ~OSMutexLocker() {
+        _lk->unlock();
+    }
+    OSMutex *_lk;
+};
+
 } /* namespace FEmbed */
 
 #endif /* MUTEX_H_ */
