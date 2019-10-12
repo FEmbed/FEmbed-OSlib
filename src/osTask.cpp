@@ -227,6 +227,16 @@ OSTask* OSTask::currentTask()
     return NULL;
 }
 
+char *OSTask::currentTaskName()
+{
+    TaskHandle_t task_h = xTaskGetCurrentTaskHandle();
+    if(task_h)
+    {
+        return pcTaskGetName(task_h);
+    }
+    return "";
+}
+
 uint32_t OSTask::currentTick()
 {
 #if USE_FEMBED    
