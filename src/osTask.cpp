@@ -239,7 +239,7 @@ char *OSTask::currentTaskName()
 
 uint32_t OSTask::currentTick()
 {
-#if USE_FEMBED    
+#if USE_FEMBED
     return fe_get_ticks();
 #else
     if(FE_IS_IN_ISR())

@@ -14,18 +14,9 @@
         "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
     },
     "version": "0.1.0",
-    "frameworks": "esp8266-rtos-sdk",
-    "platforms": "custom8266",
+    "frameworks": ["esp8266-rtos-sdk", "fembed"],
+    "platforms": ["custom8266", "ststm32"],
     "build": {
-        "includeDir": "src",
-        "srcFilter":[
-            "-<freertos/*.c>",
-            "-<port>",
-            "+<port/freertos/Common>",
-            "+<*.c>",
-            "+<*.cpp>",
-            "+<*.h>"
-        ],
         "extraScript": "generate_headers.py"
     }
 }
