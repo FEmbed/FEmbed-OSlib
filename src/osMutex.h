@@ -23,7 +23,7 @@
 
 #include "FreeRTOS.h"
 #include "semphr.h"
-
+#include <memory>
 
 namespace FEmbed {
 class OSMutexPrivateData;
@@ -50,6 +50,12 @@ class OSMutexLocker {
     OSMutexLocker(OSMutex *lk) {
         _lk = lk;
         assert(lk);
+        _lk->lock();
+    }
+
+    OSMutexLocker(std::shared_ptr<OSMutex> &slk) {
+        _lk = slk.get();
+        assert(_lk);
         _lk->lock();
     }
 

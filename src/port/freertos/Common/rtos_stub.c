@@ -3,6 +3,7 @@
  */ 
 #include <assert.h>
 #include <malloc.h>
+#include <string.h>
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -30,6 +31,21 @@ static size_t xFreeBytesRemaining = 0U;
 static size_t xMinimumEverFreeBytesRemaining = 0U;
 static size_t xBlockAllocatedBit = 0;
 
+/**
+ * Heap correctly check for use
+ */
+void heap_correct_check()
+{
+    size_t sum = 0;
+    BlockLink_t *pxBlock = xStart.pxNextFreeBlock;
+    while(pxBlock->pxNextFreeBlock != NULL)
+    {
+        sum += pxBlock->xBlockSize;
+        pxBlock = pxBlock->pxNextFreeBlock;
+    }
+    assert(sum == xFreeBytesRemaining);
+}
+
 /* reference heap_5.c for details */
 void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
@@ -38,6 +54,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     configASSERT( pxEnd );
 
     vTaskSuspendAll();
+    heap_correct_check();
     {
         if( ( xWantedSize & xBlockAllocatedBit ) == 0 )
         {
@@ -50,7 +67,6 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
                     xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
                 }
             }
-
             if( ( xWantedSize > 0 ) && ( xWantedSize <= xFreeBytesRemaining ) )
             {
                 /* Traverse the list from the start (lowest address) block until one of adequate size is found. */
@@ -114,6 +130,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
 
         traceMALLOC( pvReturn, xWantedSize );
     }
+    heap_correct_check();
     ( void ) xTaskResumeAll();
 
     #if( configUSE_MALLOC_FAILED_HOOK == 1 )
@@ -159,6 +176,7 @@ void rtos_free(void *pv) {
                     traceFREE( pv, pxLink->xBlockSize );
                     prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
                 }
+                heap_correct_check();
                 ( void ) xTaskResumeAll();
             }
         }
@@ -175,6 +193,19 @@ void *rtos_alloc(size_t xWantedSize)
 void *dma_alloc(size_t xWantedSize)
 {
     return common_alloc(xWantedSize, (void *)DMA_START, /*DMA_START + */(void *)DMA_LIMIT);
+}
+
+void *rtos_realloc(void *pv, size_t size)
+{
+    void *ret = rtos_alloc(size);
+    if(pv != NULL)
+    {
+        BlockLink_t *pxBlock = (BlockLink_t *)(((uint8_t *)pv) - xHeapStructSize);
+        size_t old_size = pxBlock->xBlockSize &(~xBlockAllocatedBit);
+        memcpy(ret, pv, old_size< size?old_size:size);
+        rtos_free(pv);
+    }
+    return ret;
 }
 
 void *dma_calloc(size_t count, size_t xWantedSize)
@@ -274,6 +305,8 @@ void vApplicationMallocFailedHook( void )
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 {
+    (void) xTask;
+    (void) pcTaskName;
     assert(0);
 }
 #endif

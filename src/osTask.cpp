@@ -40,10 +40,11 @@ namespace FEmbed {
 
 /**
  * OSTask will allocate 3 continue memory.
- * +------------------------+
- * |   StaticTask_t         |
+ *
  * +------------------------+
  * |   Stack                |
+ * +------------------------+
+ * |   StaticTask_t         |
  * +------------------------+
  * |   OSTaskPrivateData    |
  * +------------------------+
