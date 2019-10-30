@@ -66,6 +66,7 @@
 #ifndef USE_ARDUINO
 #include "app.h"        //< For 
 #endif
+#include <stdint.h>
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -79,8 +80,20 @@
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */   	      
-/* Section where include file can be added */
+/* USER CODE BEGIN Includes */
+/* -------------------------------------------------------------------- */
+/* Macros to identify the compiler used: */
+#define configCOMPILER_ARM_GCC                    1 /* GNU ARM gcc compiler */
+#define configCOMPILER_ARM_IAR                    2 /* IAR ARM compiler */
+#define configCOMPILER_ARM_FSL                    3 /* Legacy Freescale ARM compiler */
+#define configCOMPILER_ARM_KEIL                   4 /* ARM/Keil compiler */
+#define configCOMPILER_S08_FSL                    5 /* Freescale HCS08 compiler */
+#define configCOMPILER_S12_FSL                    6 /* Freescale HCS12(X) compiler */
+#define configCOMPILER_CF1_FSL                    7 /* Freescale ColdFire V1 compiler */
+#define configCOMPILER_CF2_FSL                    8 /* Freescale ColdFire V2 compiler */
+#define configCOMPILER_DSC_FSL                    9 /* Freescale DSC compiler */
+
+#define configCOMPILER                            configCOMPILER_ARM_GCC
 /* USER CODE END Includes */ 
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */
@@ -101,11 +114,15 @@
 #define configUSE_IDLE_HOOK                      0
 #define configUSE_TICK_HOOK                      0
 #define configUSE_MALLOC_FAILED_HOOK             1
+#define configCHECK_FOR_STACK_OVERFLOW_NAME      vApplicationStackOverflowHook
+
 #define configTICK_RATE_HZ                       ((portTickType)1000)
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
 #define configMAX_TASK_NAME_LEN                  ( 32 )
 #define configUSE_TRACE_FACILITY                 1
+#define configRECORD_STACK_HIGH_ADDRESS          1
+#define configGENERATE_RUN_TIME_STATS            1
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
@@ -119,6 +136,28 @@
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 1
 #endif
 #define configTHREAD_LOCAL_STORAGE_DELETE_CALLBACKS 1
+
+#ifndef configGENERATE_RUN_TIME_STATS_USE_TICKS
+  #define configGENERATE_RUN_TIME_STATS_USE_TICKS 1 /* 1: Use the RTOS tick counter as runtime counter. 0: use extra timer */
+#endif
+#ifndef configGENERATE_RUN_TIME_STATS
+  #define configGENERATE_RUN_TIME_STATS           1 /* 1: generate runtime statistics; 0: no runtime statistics */
+#endif
+#if configGENERATE_RUN_TIME_STATS
+  #if configGENERATE_RUN_TIME_STATS_USE_TICKS
+    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   /* nothing */ /* default: use Tick counter as runtime counter */
+    #define portGET_RUN_TIME_COUNTER_VALUE()           xTaskGetTickCountFromISR() /* default: use Tick counter as runtime counter */
+  #else /* use dedicated timer */
+    extern uint32_t McuRTOS_AppGetRuntimeCounterValueFromISR(void);
+    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   McuRTOS_AppConfigureTimerForRuntimeStats()
+    #define portGET_RUN_TIME_COUNTER_VALUE()           McuRTOS_AppGetRuntimeCounterValueFromISR()
+  #endif
+#else /* no runtime stats, use empty macros */
+  #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()     /* nothing */
+  #define portGET_RUN_TIME_COUNTER_VALUE()             /* nothing */
+#endif
+
+#define configUSE_HEAP_SCHEME                   5
 
 /* Software timer definitions. */
 #define configUSE_TIMERS                         1
@@ -173,7 +212,7 @@ to all Cortex-M ports, and do not rely on any particular library functions. */
 #define configKERNEL_INTERRUPT_PRIORITY     ( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY    ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
