@@ -208,9 +208,22 @@ void *rtos_realloc(void *pv, size_t size)
     return ret;
 }
 
+void *rtos_calloc(size_t count, size_t xWantedSize)
+{
+    size_t len = count*xWantedSize;
+    void *ret = dma_alloc(len);
+    if(ret)
+        memset(ret, 0, len);
+    return ret;
+}
+
 void *dma_calloc(size_t count, size_t xWantedSize)
 {
-    return dma_alloc(count*xWantedSize);
+    size_t len = count*xWantedSize;
+    void *ret = common_alloc(len, (void *)DMA_START, /*DMA_START + */(void *)DMA_LIMIT);
+    if(ret)
+        memset(ret, 0, len);
+    return ret;
 }
 
 void dma_free(void *pv)
@@ -230,12 +243,13 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 
 static void prvInsertBlockIntoFreeList( BlockLink_t *pxBlockToInsert )
 {
-BlockLink_t *pxIterator;
-uint8_t *puc;
+    BlockLink_t *pxIterator;
+    uint8_t *puc;
 
     /* Iterate through the list until a block is found that has a higher address
     than the block being inserted. */
-    for( pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert; pxIterator = pxIterator->pxNextFreeBlock )
+    for( pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert;
+                    pxIterator = pxIterator->pxNextFreeBlock )
     {
         /* Nothing to do here, just iterate to the right position. */
     }
