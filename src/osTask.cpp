@@ -24,6 +24,8 @@
 #include "fe_target_ticks.h"
 #endif
 
+#define OSTAK_RUNONCE_NAME      "__?RunOnce?__"
+
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
 static void OSTask_runable_wrap(void *arg)
@@ -33,8 +35,15 @@ static void OSTask_runable_wrap(void *arg)
         task->stop();
     task->loop();
 
-    log_w("Task run out of loop.");   ///< task run-out of loop.
-    delete task;
+    if(strcmp(task->name(), OSTAK_RUNONCE_NAME) == 0)
+    {
+        delete task;
+    }
+    else
+    {
+        log_w("Please delete it from other tasks.");   // task run-out of loop.
+        task->delay(0xffffffff);                       // delay forever.
+    }
 }
 
 namespace FEmbed {
@@ -150,11 +159,9 @@ void OSTask::start()
 }
 #endif
 
-void OSTask::start(fe_task_runable runable)
+void OSTask::runOnce(fe_task_runable runable)
 {
-    if(this->d_ptr)
-        this->d_ptr->m_runable = runable;
-    this->start();
+    (new FEmbed::OSTask(OSTAK_RUNONCE_NAME))->setRunable(runable)->start();
 }
 
 void OSTask::stop()
@@ -173,10 +180,11 @@ uint32_t OSTask::priority()
     return uxTaskPriorityGet(this->d_ptr->handle);
 }
 
-void OSTask::setRunable(fe_task_runable runable)
+OSTask *OSTask::setRunable(fe_task_runable runable)
 {
     if(this->d_ptr)
         this->d_ptr->m_runable = runable;
+    return this;
 }
 
 void OSTask::exit(int signal)

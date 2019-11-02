@@ -66,10 +66,9 @@ public:
 #else
     void start();
 #endif
-    void start(fe_task_runable runable);
     void stop();
     void exit(int signal);
-    void setRunable(fe_task_runable runable);
+    OSTask *setRunable(fe_task_runable runable);
     bool isRun();
     uint32_t priority();
     char *name();
@@ -78,9 +77,10 @@ public:
     virtual void loop();
 
     /**
-     * static delay function for RTOS.
-     * @param ms delay millisec for current thread.
+     * Runonce object will auto re-cycle memory after run out.
+     * @param runable run object.
      */
+    static void runOnce(fe_task_runable runable);
     static void osInit();
     static char *currentTaskName();
     static OSTask* currentTask();
