@@ -32,7 +32,8 @@ static void OSTask_runable_wrap(void *arg)
     if(task->isRun() == false)
         task->stop();
     task->loop();
-    // Auto free task information.
+
+    log_w("Task run out of loop.");   ///< task run-out of loop.
     delete task;
 }
 
@@ -68,6 +69,7 @@ OSTask::OSTask(
     assert((stack_size % sizeof(StackType_t)) == 0);
     taskENTER_CRITICAL();
 #if USE_FEMBED
+    m_wd_mask = 0;
     if(FE_OSTASK_FLAG_DMA_STACK & flags)
     {
         stack_ptr = (StackType_t *) DMA_MALLOC(stack_size);
@@ -106,8 +108,6 @@ OSTask::OSTask(
 OSTask::~OSTask() {
     OSTaskPrivateData *ptr = this->d_ptr;
     TaskHandle_t handle = ptr->handle;
-    //Need deleted OSTask from current RTOS
-    vSemaphoreDelete(this->d_ptr->m_lock);
 
     // Don't interrupt this free process, else may get memory error.
     taskENTER_CRITICAL();
@@ -115,14 +115,27 @@ OSTask::~OSTask() {
     if((xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) &&
         (xTaskGetCurrentTaskHandle() == this->d_ptr->handle))
     {
+        //Need deleted OSTask from current RTOS
+        vSemaphoreDelete(this->d_ptr->m_lock);
+        rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
+        rtos_free_delayed(handle);
         free((void *)this);
+    }
+    else
+    {
+        this->stop();
+        //Need deleted OSTask from current RTOS
+        vSemaphoreDelete(this->d_ptr->m_lock);
     }
     taskEXIT_CRITICAL();
     vTaskDelete(handle);
+    // Self-delete cannot get here.
+    rtos_free(((StaticTask_t *)handle)->pxDummy6);
+    rtos_free(handle);
 }
 
 #if USE_FEMBED
-void OSTask::start(shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
+void OSTask::start(std::shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
 {
     m_wd = wd;
     m_wd_mask = mask;
@@ -136,6 +149,13 @@ void OSTask::start()
     vTaskResume(this->d_ptr->handle);
 }
 #endif
+
+void OSTask::start(fe_task_runable runable)
+{
+    if(this->d_ptr)
+        this->d_ptr->m_runable = runable;
+    this->start();
+}
 
 void OSTask::stop()
 {
@@ -180,7 +200,6 @@ void OSTask::loop()
     //Must override this function for real do.
     if(this->d_ptr->m_runable)
         this->d_ptr->m_runable(this);
-    delete this;
 }
 
 void OSTask::feedDog()
@@ -235,7 +254,7 @@ char *OSTask::currentTaskName()
     {
         return pcTaskGetName(task_h);
     }
-    return "";
+    return (char *)"???";
 }
 
 uint32_t OSTask::currentTick()

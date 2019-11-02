@@ -22,7 +22,7 @@
 #include "semphr.h"
 
 #if USE_FEMBED
-#include "WatchDog.h"
+#include <FEmbed.h>
 
 #define FE_OSTASK_FEED_CURR_DOG                 FEmbed::OSTask::currentTask()->feedDog()
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
@@ -62,10 +62,11 @@ public:
     virtual ~OSTask();
 
 #if USE_FEMBED
-    void start(shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
+    void start(std::shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
 #else
     void start();
 #endif
+    void start(fe_task_runable runable);
     void stop();
     void exit(int signal);
     void setRunable(fe_task_runable runable);
@@ -88,7 +89,7 @@ protected:
     void lock();
     void unlock();
 #if USE_FEMBED
-    shared_ptr<FEmbed::WatchDog> m_wd;
+    std::shared_ptr<FEmbed::WatchDog> m_wd;
 #endif
     uint32_t m_wd_mask;
     int m_exit;

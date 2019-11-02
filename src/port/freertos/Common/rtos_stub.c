@@ -6,6 +6,7 @@
 #include <string.h>
 #include "FreeRTOS.h"
 #include "task.h"
+#include "elog.h"
 
 #if CONFIG_RTOS_LIB_FREERTOS
 
@@ -52,7 +53,6 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     void *pvReturn = NULL;
 
     configASSERT( pxEnd );
-
     vTaskSuspendAll();
     heap_correct_check();
     {
@@ -146,9 +146,51 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     return pvReturn;
 }
 
+/**
+ * Free Delayed without this Task.
+ * @param pv need free buf.
+ */
+BlockLink_t rtos_free_delay_link = {NULL, 0};
+void rtos_free_delayed(void *pv) {
+    uint8_t *puc = ( uint8_t * ) pv;
+    BlockLink_t *pxLink, *pxFree = &rtos_free_delay_link;
+    if( pv != NULL )
+    {
+        puc -= xHeapStructSize;
+        pxLink = ( void * ) puc;
+        configASSERT( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 );
+        configASSERT( pxLink->pxNextFreeBlock == NULL );
+        if( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 )
+        {
+            if( pxLink->pxNextFreeBlock == NULL )
+            {
+                while(pxFree->pxNextFreeBlock != NULL)
+                    pxFree = pxFree->pxNextFreeBlock;
+                pxFree->pxNextFreeBlock = pxLink;
+            }
+        }
+    }
+}
+
+void rtos_do_free(BlockLink_t *pxLink)
+{
+    /* The block is being returned to the heap - it is no longer allocated. */
+    pxLink->xBlockSize &= ~xBlockAllocatedBit;
+
+    vTaskSuspendAll();
+    {
+        /* Add this block to the list of free blocks. */
+        xFreeBytesRemaining += pxLink->xBlockSize;
+        traceFREE( pv, pxLink->xBlockSize );
+        prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
+    }
+    heap_correct_check();
+    ( void ) xTaskResumeAll();
+}
+
 void rtos_free(void *pv) {
     uint8_t *puc = ( uint8_t * ) pv;
-    BlockLink_t *pxLink;
+    BlockLink_t *pxLink, *pxFree = rtos_free_delay_link.pxNextFreeBlock;
 
     if( pv != NULL )
     {
@@ -166,21 +208,19 @@ void rtos_free(void *pv) {
         {
             if( pxLink->pxNextFreeBlock == NULL )
             {
-                /* The block is being returned to the heap - it is no longer allocated. */
-                pxLink->xBlockSize &= ~xBlockAllocatedBit;
-
-                vTaskSuspendAll();
-                {
-                    /* Add this block to the list of free blocks. */
-                    xFreeBytesRemaining += pxLink->xBlockSize;
-                    traceFREE( pv, pxLink->xBlockSize );
-                    prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
-                }
-                heap_correct_check();
-                ( void ) xTaskResumeAll();
+                rtos_do_free(pxLink);
             }
         }
     }
+
+    ///< free all delayed.
+    while(pxFree != NULL)
+    {
+        pxLink = pxFree->pxNextFreeBlock;
+        rtos_do_free(pxFree);
+        pxFree = pxLink;
+    }
+    rtos_free_delay_link.pxNextFreeBlock = NULL;
 }
 
 extern char         DMA_START[];
@@ -229,6 +269,15 @@ void *dma_calloc(size_t count, size_t xWantedSize)
 void dma_free(void *pv)
 {
     return rtos_free(pv);
+}
+
+size_t rtos_free_heap_size()
+{
+    size_t ret = 0;
+    vTaskSuspendAll();
+    ret = xFreeBytesRemaining;
+    ( void ) xTaskResumeAll();
+    return ret;
 }
 
 size_t xPortGetFreeHeapSize( void )
