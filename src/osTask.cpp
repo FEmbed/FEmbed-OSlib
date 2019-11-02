@@ -67,7 +67,9 @@ OSTask::OSTask(
         unsigned int stack_size,
         unsigned int priority,
         unsigned int flags
-        ) {
+        ) :
+                m_lock(new OSMutex())
+{
 #ifdef TRACE_MEM
     // Trace OSTask start memory map
     vPortMemInfoDetails();
@@ -99,9 +101,6 @@ OSTask::OSTask(
 
     this->m_exit = 0;
 
-    this->d_ptr->m_lock = xSemaphoreCreateMutex();
-    assert(this->d_ptr->m_lock);
-
     this->d_ptr->handle = xTaskCreateStatic(
             OSTask_runable_wrap,
             name,
@@ -125,7 +124,6 @@ OSTask::~OSTask() {
         (xTaskGetCurrentTaskHandle() == this->d_ptr->handle))
     {
         //Need deleted OSTask from current RTOS
-        vSemaphoreDelete(this->d_ptr->m_lock);
         rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
         rtos_free_delayed(handle);
         free((void *)this);
@@ -133,8 +131,6 @@ OSTask::~OSTask() {
     else
     {
         this->stop();
-        //Need deleted OSTask from current RTOS
-        vSemaphoreDelete(this->d_ptr->m_lock);
     }
     taskEXIT_CRITICAL();
     vTaskDelete(handle);
@@ -216,16 +212,6 @@ void OSTask::feedDog()
     if(m_wd)
         m_wd->feedWatchDog(m_wd_mask);
 #endif
-}
-
-void OSTask::lock()
-{
-    xSemaphoreTake(this->d_ptr->m_lock, portMAX_DELAY);
-}
-
-void OSTask::unlock()
-{
-    xSemaphoreGive(this->d_ptr->m_lock);
 }
 
 void OSTask::delay(uint32_t ms)

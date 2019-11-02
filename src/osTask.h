@@ -44,7 +44,6 @@ class OSTaskPrivateData {
 public:
     class OSTask *m_task;
     TaskHandle_t  handle;                    ///< use to handle current os tid.
-    QueueHandle_t m_lock;
     fe_task_runable m_runable;
     bool m_is_run;
 };
@@ -86,8 +85,9 @@ public:
     static OSTask* currentTask();
     static uint32_t currentTick();
 protected:
-    void lock();
-    void unlock();
+    void lock() { m_lock->lock(); }
+    void unlock() { m_lock->unlock(); }
+    std::shared_ptr<OSMutex> m_lock;
 #if USE_FEMBED
     std::shared_ptr<FEmbed::WatchDog> m_wd;
 #endif
@@ -101,4 +101,36 @@ private:
     // static global delay
     void osDelay(uint32_t ms);
 }
+
+#define FE_OS_MEMBER_BOOL(OBJ, NAME) \
+ private: \
+    bool OBJ; \
+ public: \
+    void set##NAME(bool val) \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        OBJ = val; \
+    } \
+    bool is##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        return OBJ; \
+    }
+
+#define FE_OS_MEMBER_TYPE(OBJ, NAME, TYPE) \
+ private: \
+    TYPE OBJ; \
+ public: \
+    void set##NAME(TYPE val) \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        OBJ = val; \
+    } \
+    TYPE get##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        return OBJ; \
+    }
+
+
 #endif /* __FE_FASTEMBEDDED_TASK_H__ */
