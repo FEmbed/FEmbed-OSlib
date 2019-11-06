@@ -67,4 +67,21 @@ class OSMutexLocker {
 
 } /* namespace FEmbed */
 
+#define FE_NOTIFY_BOOL_METHOD(OBJ, NAME, LOCK) \
+ private: \
+    bool OBJ; \
+ public: \
+    void notify##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(LOCK); \
+        OBJ = true; \
+    } \
+    bool is##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(LOCK); \
+        bool ret = OBJ; \
+        OBJ = false; \
+        return ret; \
+    }
+
 #endif /* MUTEX_H_ */

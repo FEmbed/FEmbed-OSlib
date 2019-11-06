@@ -80,4 +80,17 @@ private:
 
 } /* namespace FEmbed */
 
-#endif /* MUTEX_H_ */
+#define FE_NOTIFY_SIGNAL(POS, NAME, SIGNAL) \
+ public: \
+    inline void notify##NAME() \
+    { \
+         SIGNAL->set(1<<(POS)); \
+    } \
+    inline bool is##NAME(uint32_t chk) \
+    { \
+        if(chk & (1<<(POS))) \
+            return true; \
+        return false; \
+    }
+
+#endif /* __FE_FASTEMBEDDED_OS_SIGNAL_H__ */
