@@ -24,7 +24,7 @@
 #include "fe_target_ticks.h"
 #endif
 
-#define OSTAK_RUNONCE_NAME      "__?RunOnce?__"
+#define OSTAK_RUNONCE_NAME      "__?Run?__"
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
