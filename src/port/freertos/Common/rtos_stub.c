@@ -7,6 +7,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "elog.h"
+#include "driver_config.h"
 
 #if CONFIG_RTOS_LIB_FREERTOS
 
@@ -53,6 +54,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     void *pvReturn = NULL;
 
     configASSERT( pxEnd );
+    //configASSERT( FE_IS_IN_ISR() == 0 );
     vTaskSuspendAll();
     heap_correct_check();
     {

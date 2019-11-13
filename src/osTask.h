@@ -132,5 +132,6 @@ private:
         return OBJ; \
     }
 
+#define FEMBED_OS_LOCKER     FEmbed::OSMutexLocker _locker(this->m_lock.get())
 
 #endif /* __FE_FASTEMBEDDED_TASK_H__ */
