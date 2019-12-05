@@ -399,7 +399,8 @@ void vApplicationGetIdleTaskMemory(
     
     xIdleTaskTCB = pvPortMalloc(TASKTCB_SIZE);
     uxIdleTaskStack = pvPortMalloc(sizeof(StackType_t) * FE_STATIC_IDLE_TASK_STATIC_SIZE);
-
+    for(int i=0; i< FE_STATIC_IDLE_TASK_STATIC_SIZE; i++)
+        uxIdleTaskStack[i] = 0xa5a5a5a5;
     *ppxIdleTaskTCBBuffer = xIdleTaskTCB;
     *ppxIdleTaskStackBuffer = uxIdleTaskStack;
     *pulIdleTaskStackSize = FE_STATIC_IDLE_TASK_STATIC_SIZE;
@@ -421,9 +422,10 @@ void vApplicationGetTimerTaskMemory(
         StackType_t **ppxTimerTaskStackBuffer,
         uint32_t *pulTimerTaskStackSize )
 {
-    xTimerTaskTCB = pvPortMalloc(TASKTCB_SIZE);
-    uxTimerTaskStack = pvPortMalloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
-
+    xTimerTaskTCB = dma_alloc(TASKTCB_SIZE);
+    uxTimerTaskStack = dma_alloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
+    for(int i=0; i< configTIMER_TASK_STACK_DEPTH; i++)
+        uxTimerTaskStack[i] = 0xa5a5a5a5;
     *ppxTimerTaskTCBBuffer = xTimerTaskTCB;
     *ppxTimerTaskStackBuffer = uxTimerTaskStack;
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
