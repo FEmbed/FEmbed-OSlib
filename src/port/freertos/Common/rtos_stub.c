@@ -9,8 +9,8 @@
 #include "elog.h"
 #include "driver_config.h"
 
+#define RTOS_MEM_DEBUG                                                      (0)
 #if CONFIG_RTOS_LIB_FREERTOS
-
 /*******************************************************************************
  * Create New For some multi-region memory malloc and free.
  ******************************************************************************/
@@ -124,6 +124,11 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
 
                     /* The block is being returned - it is allocated and owned
                     by the application and has no "next" block. */
+#if RTOS_MEM_DEBUG
+                    char sbuf[32];
+                    sprintf(sbuf, "M>> %d,0x%08x\n", pxBlock->xBlockSize, (unsigned int)pxBlock);
+                    _write(1, sbuf, strlen(sbuf));
+#endif
                     pxBlock->xBlockSize |= xBlockAllocatedBit;
                     pxBlock->pxNextFreeBlock = NULL;
                 }
@@ -178,7 +183,11 @@ void rtos_do_free(BlockLink_t *pxLink)
 {
     /* The block is being returned to the heap - it is no longer allocated. */
     pxLink->xBlockSize &= ~xBlockAllocatedBit;
-
+#if RTOS_MEM_DEBUG
+    char sbuf[32];
+    sprintf(sbuf, "F<< %d,0x%08x\n", pxLink->xBlockSize, (unsigned int)pxLink);
+    _write(1, sbuf, strlen(sbuf));
+#endif
     vTaskSuspendAll();
     {
         /* Add this block to the list of free blocks. */

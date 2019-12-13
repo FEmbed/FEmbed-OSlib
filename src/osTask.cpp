@@ -206,12 +206,13 @@ void OSTask::loop()
         this->d_ptr->m_runable(this);
 }
 
-void OSTask::feedDog()
+bool OSTask::feedDog()
 {
 #if USE_FEMBED
     if(m_wd)
-        m_wd->feedWatchDog(m_wd_mask);
+        return m_wd->feedWatchDog(m_wd_mask);
 #endif
+    return true;
 }
 
 void OSTask::delay(uint32_t ms)
