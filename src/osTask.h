@@ -71,7 +71,7 @@ public:
     bool isRun();
     uint32_t priority();
     char *name();
-    virtual void feedDog();
+    virtual bool feedDog();
     virtual void delay(uint32_t ms);
     virtual void loop();
 

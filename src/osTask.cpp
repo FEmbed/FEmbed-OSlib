@@ -62,6 +62,16 @@ namespace FEmbed {
  * @param stack_size
  * @param priority
  */
+void FEmbedDeleteCallbackFunction(int idx, void * data)
+{
+    OSTaskPrivateData *ptr = (OSTaskPrivateData *)data;
+    TaskHandle_t handle = ptr->handle;
+
+    //Need deleted OSTask from current RTOS
+    rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
+    rtos_free_delayed(handle);
+}
+
 OSTask::OSTask(
         const char* name,
         unsigned int stack_size,
@@ -111,6 +121,10 @@ OSTask::OSTask(
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
     taskEXIT_CRITICAL();
+    vTaskSetThreadLocalStoragePointerAndDelCallback(this->d_ptr->handle,
+                                                    configNUM_THREAD_LOCAL_STORAGE_POINTERS - 1,
+                                                    this->d_ptr,
+                                                    FEmbedDeleteCallbackFunction);
 }
 
 OSTask::~OSTask() {
@@ -123,9 +137,6 @@ OSTask::~OSTask() {
     if((xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) &&
         (xTaskGetCurrentTaskHandle() == this->d_ptr->handle))
     {
-        //Need deleted OSTask from current RTOS
-        rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
-        rtos_free_delayed(handle);
         free((void *)this);
     }
     else
@@ -133,10 +144,8 @@ OSTask::~OSTask() {
         this->stop();
     }
     taskEXIT_CRITICAL();
+    m_lock.reset();
     vTaskDelete(handle);
-    // Self-delete cannot get here.
-    rtos_free(((StaticTask_t *)handle)->pxDummy6);
-    rtos_free(handle);
 }
 
 #if USE_FEMBED
@@ -206,12 +215,13 @@ void OSTask::loop()
         this->d_ptr->m_runable(this);
 }
 
-void OSTask::feedDog()
+bool OSTask::feedDog()
 {
 #if USE_FEMBED
     if(m_wd)
-        m_wd->feedWatchDog(m_wd_mask);
+        return m_wd->feedWatchDog(m_wd_mask);
 #endif
+    return true;
 }
 
 void OSTask::delay(uint32_t ms)
