@@ -24,7 +24,7 @@
 #if USE_FEMBED
 #include <FEmbed.h>
 
-#define FE_OSTASK_FEED_CURR_DOG                 FEmbed::OSTask::currentTask()->feedDog()
+#define FE_OSTASK_FEED_CURR_DOG                 do { if(FEmbed::OSTask::currentTask()) FEmbed::OSTask::currentTask()->feedDog(); } while(0)
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
 #else
 #define FE_OSTASK_FEED_CURR_DOG                 
