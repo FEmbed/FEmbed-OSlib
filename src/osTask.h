@@ -75,11 +75,17 @@ public:
     virtual void delay(uint32_t ms);
     virtual void loop();
 
+    ////////////////////////////////////////////////////////////////////////////
+    /// All of these static methods are not safe.
+    /// Users must know when the current task is created by using OSTask
+    ///     instead of using CMSIS or other methods.
+    ////////////////////////////////////////////////////////////////////////////
     /**
      * Runonce object will auto re-cycle memory after run out.
      * @param runable run object.
      */
     static void runOnce(fe_task_runable runable);
+
     static void osInit();
     static char *currentTaskName();
     static OSTask* currentTask();
