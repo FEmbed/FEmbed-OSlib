@@ -56,7 +56,7 @@ class OSTask {
 public:
     OSTask(const char* name,
             unsigned int stack_size = 4096,
-            unsigned int priority = configMAX_PRIORITIES - 1,
+            unsigned int priority = configMAX_PRIORITIES/2,
             unsigned int flags = 0
             );
     virtual ~OSTask();
