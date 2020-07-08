@@ -24,6 +24,8 @@
 #include "fe_target_ticks.h"
 #endif
 
+#define OSTAK_RUNONCE_NAME      "__?Run?__"
+
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
 static void OSTask_runable_wrap(void *arg)
@@ -32,18 +34,27 @@ static void OSTask_runable_wrap(void *arg)
     if(task->isRun() == false)
         task->stop();
     task->loop();
-    // Auto free task information.
-    delete task;
+
+    if(strcmp(task->name(), OSTAK_RUNONCE_NAME) == 0)
+    {
+        delete task;
+    }
+    else
+    {
+        log_w("Please delete it from other tasks.");   // task run-out of loop.
+        task->delay(0xffffffff);                       // delay forever.
+    }
 }
 
 namespace FEmbed {
 
 /**
  * OSTask will allocate 3 continue memory.
- * +------------------------+
- * |   StaticTask_t         |
+ *
  * +------------------------+
  * |   Stack                |
+ * +------------------------+
+ * |   StaticTask_t         |
  * +------------------------+
  * |   OSTaskPrivateData    |
  * +------------------------+
@@ -51,12 +62,24 @@ namespace FEmbed {
  * @param stack_size
  * @param priority
  */
+void FEmbedDeleteCallbackFunction(int idx, void * data)
+{
+    OSTaskPrivateData *ptr = (OSTaskPrivateData *)data;
+    TaskHandle_t handle = ptr->handle;
+
+    //Need deleted OSTask from current RTOS
+    rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
+    rtos_free_delayed(handle);
+}
+
 OSTask::OSTask(
         const char* name,
         unsigned int stack_size,
         unsigned int priority,
         unsigned int flags
-        ) {
+        ) :
+                m_lock(new OSMutex())
+{
 #ifdef TRACE_MEM
     // Trace OSTask start memory map
     vPortMemInfoDetails();
@@ -67,6 +90,7 @@ OSTask::OSTask(
     assert((stack_size % sizeof(StackType_t)) == 0);
     taskENTER_CRITICAL();
 #if USE_FEMBED
+    m_wd_mask = 0;
     if(FE_OSTASK_FLAG_DMA_STACK & flags)
     {
         stack_ptr = (StackType_t *) DMA_MALLOC(stack_size);
@@ -87,9 +111,6 @@ OSTask::OSTask(
 
     this->m_exit = 0;
 
-    this->d_ptr->m_lock = xSemaphoreCreateMutex();
-    assert(this->d_ptr->m_lock);
-
     this->d_ptr->handle = xTaskCreateStatic(
             OSTask_runable_wrap,
             name,
@@ -100,13 +121,15 @@ OSTask::OSTask(
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
     taskEXIT_CRITICAL();
+    vTaskSetThreadLocalStoragePointerAndDelCallback(this->d_ptr->handle,
+                                                    configNUM_THREAD_LOCAL_STORAGE_POINTERS - 1,
+                                                    this->d_ptr,
+                                                    FEmbedDeleteCallbackFunction);
 }
 
 OSTask::~OSTask() {
     OSTaskPrivateData *ptr = this->d_ptr;
     TaskHandle_t handle = ptr->handle;
-    //Need deleted OSTask from current RTOS
-    vSemaphoreDelete(this->d_ptr->m_lock);
 
     // Don't interrupt this free process, else may get memory error.
     taskENTER_CRITICAL();
@@ -116,12 +139,17 @@ OSTask::~OSTask() {
     {
         free((void *)this);
     }
+    else
+    {
+        this->stop();
+    }
     taskEXIT_CRITICAL();
+    m_lock.reset();
     vTaskDelete(handle);
 }
 
 #if USE_FEMBED
-void OSTask::start(shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
+void OSTask::start(std::shared_ptr<FEmbed::WatchDog> wd, uint32_t mask)
 {
     m_wd = wd;
     m_wd_mask = mask;
@@ -135,6 +163,11 @@ void OSTask::start()
     vTaskResume(this->d_ptr->handle);
 }
 #endif
+
+void OSTask::runOnce(fe_task_runable runable)
+{
+    (new FEmbed::OSTask(OSTAK_RUNONCE_NAME))->setRunable(runable)->start();
+}
 
 void OSTask::stop()
 {
@@ -152,10 +185,11 @@ uint32_t OSTask::priority()
     return uxTaskPriorityGet(this->d_ptr->handle);
 }
 
-void OSTask::setRunable(fe_task_runable runable)
+OSTask *OSTask::setRunable(fe_task_runable runable)
 {
     if(this->d_ptr)
         this->d_ptr->m_runable = runable;
+    return this;
 }
 
 void OSTask::exit(int signal)
@@ -179,25 +213,15 @@ void OSTask::loop()
     //Must override this function for real do.
     if(this->d_ptr->m_runable)
         this->d_ptr->m_runable(this);
-    delete this;
 }
 
-void OSTask::feedDog()
+bool OSTask::feedDog()
 {
 #if USE_FEMBED
     if(m_wd)
-        m_wd->feedWatchDog(m_wd_mask);
+        return m_wd->feedWatchDog(m_wd_mask);
 #endif
-}
-
-void OSTask::lock()
-{
-    xSemaphoreTake(this->d_ptr->m_lock, portMAX_DELAY);
-}
-
-void OSTask::unlock()
-{
-    xSemaphoreGive(this->d_ptr->m_lock);
+    return true;
 }
 
 void OSTask::delay(uint32_t ms)
@@ -227,9 +251,19 @@ OSTask* OSTask::currentTask()
     return NULL;
 }
 
+char *OSTask::currentTaskName()
+{
+    TaskHandle_t task_h = xTaskGetCurrentTaskHandle();
+    if(task_h)
+    {
+        return pcTaskGetName(task_h);
+    }
+    return (char *)"???";
+}
+
 uint32_t OSTask::currentTick()
 {
-#if USE_FEMBED    
+#if USE_FEMBED
     return fe_get_ticks();
 #else
     if(FE_IS_IN_ISR())

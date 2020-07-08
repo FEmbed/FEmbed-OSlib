@@ -22,13 +22,20 @@
 #include "semphr.h"
 
 #if USE_FEMBED
-#include "WatchDog.h"
+#include <FEmbed.h>
 
-#define FE_OSTASK_FEED_CURR_DOG                 FEmbed::OSTask::currentTask()->feedDog()
+#define FE_OSTASK_FEED_CURR_DOG                 do { if(FEmbed::OSTask::currentTask()) FEmbed::OSTask::currentTask()->feedDog(); } while(0)
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
 #else
+#include <memory>
+#include <osMutex.h>
+#include <Arduino.h>
+
 #define FE_OSTASK_FEED_CURR_DOG                 
 #define FE_OSTASK_FLAG_DMA_STACK
+#define DMA_MALLOC malloc
+#define DMA_FREE free
+#define rtos_free_delayed free
 #endif
 
 #define FE_OSTAK_ENTER_CRITICAL                 taskENTER_CRITICAL
@@ -44,7 +51,6 @@ class OSTaskPrivateData {
 public:
     class OSTask *m_task;
     TaskHandle_t  handle;                    ///< use to handle current os tid.
-    QueueHandle_t m_lock;
     fe_task_runable m_runable;
     bool m_is_run;
 };
@@ -62,32 +68,41 @@ public:
     virtual ~OSTask();
 
 #if USE_FEMBED
-    void start(shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
+    void start(std::shared_ptr<FEmbed::WatchDog> wd = nullptr, uint32_t mask = 0x1);
 #else
     void start();
 #endif
     void stop();
     void exit(int signal);
-    void setRunable(fe_task_runable runable);
+    OSTask *setRunable(fe_task_runable runable);
     bool isRun();
     uint32_t priority();
     char *name();
-    virtual void feedDog();
+    virtual bool feedDog();
     virtual void delay(uint32_t ms);
     virtual void loop();
 
+    ////////////////////////////////////////////////////////////////////////////
+    /// All of these static methods are not safe.
+    /// Users must know when the current task is created by using OSTask
+    ///     instead of using CMSIS or other methods.
+    ////////////////////////////////////////////////////////////////////////////
     /**
-     * static delay function for RTOS.
-     * @param ms delay millisec for current thread.
+     * Runonce object will auto re-cycle memory after run out.
+     * @param runable run object.
      */
+    static void runOnce(fe_task_runable runable);
+
     static void osInit();
+    static char *currentTaskName();
     static OSTask* currentTask();
     static uint32_t currentTick();
 protected:
-    void lock();
-    void unlock();
+    void lock() { m_lock->lock(); }
+    void unlock() { m_lock->unlock(); }
+    std::shared_ptr<OSMutex> m_lock;
 #if USE_FEMBED
-    shared_ptr<FEmbed::WatchDog> m_wd;
+    std::shared_ptr<FEmbed::WatchDog> m_wd;
 #endif
     uint32_t m_wd_mask;
     int m_exit;
@@ -98,5 +113,62 @@ private:
 
     // static global delay
     void osDelay(uint32_t ms);
+
+/**
+ * Fast memory alloc and auto free.
+ */
+class OSMemoryAllocator {
+ public:
+    OSMemoryAllocator(size_t size, uint8_t mem_type = 0) {
+        _mem = NULL;
+        if(mem_type == 1)
+            _mem = DMA_MALLOC(size);
+        else
+            _mem = malloc(size);
+    }
+
+    void *address() {
+        return _mem;
+    }
+
+    virtual ~OSMemoryAllocator() {
+        if(_mem) free(_mem);
+    }
+    void *_mem;
+};
+
 }
+
+#define FE_OS_MEMBER_BOOL(OBJ, NAME) \
+ private: \
+    bool OBJ; \
+ public: \
+    void set##NAME(bool val) \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        OBJ = val; \
+    } \
+    bool is##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        return OBJ; \
+    }
+
+#define FE_OS_MEMBER_TYPE(OBJ, NAME, TYPE) \
+ private: \
+    TYPE OBJ; \
+ public: \
+    void set##NAME(TYPE val) \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        OBJ = val; \
+    } \
+    TYPE get##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(m_lock); \
+        return OBJ; \
+    }
+
+#define FEMBED_OS_LOCKER     FEmbed::OSMutexLocker _locker(this->m_lock.get())
+
 #endif /* __FE_FASTEMBEDDED_TASK_H__ */

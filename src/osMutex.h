@@ -23,7 +23,7 @@
 
 #include "FreeRTOS.h"
 #include "semphr.h"
-
+#include <memory>
 
 namespace FEmbed {
 class OSMutexPrivateData;
@@ -45,6 +45,48 @@ private:
 	OSMutexPrivateData *d_ptr;
 };
 
+class OSMutexLocker {
+ public:
+    OSMutexLocker(OSMutex *lk) {
+        _lk = lk;
+        assert(lk);
+        _lk->lock();
+    }
+
+    OSMutexLocker(OSMutex &lk) {
+        _lk = &lk;
+        _lk->lock();
+    }
+
+    OSMutexLocker(std::shared_ptr<OSMutex> &slk) {
+        _lk = slk.get();
+        assert(_lk);
+        _lk->lock();
+    }
+
+    virtual ~OSMutexLocker() {
+        _lk->unlock();
+    }
+    OSMutex *_lk;
+};
+
 } /* namespace FEmbed */
+
+#define FE_NOTIFY_BOOL_METHOD(OBJ, NAME, LOCK) \
+ private: \
+    bool OBJ; \
+ public: \
+    void notify##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(LOCK); \
+        OBJ = true; \
+    } \
+    bool is##NAME() \
+    { \
+        FEmbed::OSMutexLocker locker(LOCK); \
+        bool ret = OBJ; \
+        OBJ = false; \
+        return ret; \
+    }
 
 #endif /* MUTEX_H_ */
