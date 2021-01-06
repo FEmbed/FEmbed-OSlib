@@ -13,7 +13,7 @@
         "type": "git",
         "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
     },
-    "version": "0.1.0",
+    "version": "0.2.0",
     "frameworks": "esp8266-rtos-sdk,espidf",
     "platforms": "custom8266,espressif32",
     "build": {

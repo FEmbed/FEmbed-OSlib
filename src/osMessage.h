@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public:
     {
         BaseType_t TaskWoken = pdFALSE;
         if(FE_IS_IN_ISR())
-            xQueueReceiveFromISR(this->d_ptr->m_msg, item, TaskWoken);
+            xQueueReceiveFromISR(this->d_ptr->m_msg, item, &TaskWoken);
         else
             xQueueReceive(this->d_ptr->m_msg, item, portMAX_DELAY);
     }

@@ -3,11 +3,21 @@
  */ 
 #include <assert.h>
 #include <malloc.h>
+#include <string.h>
 #include "FreeRTOS.h"
 #include "task.h"
+#include "elog.h"
+#include "cmsis.h"
+#include "driver_config.h"
 
+#define RTOS_MEM_DEBUG                                                      (0)
 #if CONFIG_RTOS_LIB_FREERTOS
-
+#ifndef RTOS_MEM_LOCK
+#define RTOS_MEM_LOCK vTaskSuspendAll()
+#endif
+#ifndef RTOS_MEM_UNLOCK
+#define RTOS_MEM_UNLOCK ( void ) xTaskResumeAll()
+#endif
 /*******************************************************************************
  * Create New For some multi-region memory malloc and free.
  ******************************************************************************/
@@ -30,14 +40,30 @@ static size_t xFreeBytesRemaining = 0U;
 static size_t xMinimumEverFreeBytesRemaining = 0U;
 static size_t xBlockAllocatedBit = 0;
 
+/**
+ * Heap correctly check for use
+ */
+void heap_correct_check()
+{
+    size_t sum = 0;
+    BlockLink_t *pxBlock = xStart.pxNextFreeBlock;
+    while(pxBlock->pxNextFreeBlock != NULL)
+    {
+        sum += pxBlock->xBlockSize;
+        pxBlock = pxBlock->pxNextFreeBlock;
+    }
+    assert(sum == xFreeBytesRemaining);
+}
+
 /* reference heap_5.c for details */
 void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
     BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
     void *pvReturn = NULL;
 
     configASSERT( pxEnd );
-
-    vTaskSuspendAll();
+    //configASSERT( FE_IS_IN_ISR() == 0 );
+    RTOS_MEM_LOCK;
+    heap_correct_check();
     {
         if( ( xWantedSize & xBlockAllocatedBit ) == 0 )
         {
@@ -50,13 +76,12 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
                     xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
                 }
             }
-
             if( ( xWantedSize > 0 ) && ( xWantedSize <= xFreeBytesRemaining ) )
             {
                 /* Traverse the list from the start (lowest address) block until one of adequate size is found. */
                 pxPreviousBlock = &xStart;
                 pxBlock = xStart.pxNextFreeBlock;
-                while( !(pxBlock >= xWantedStart && pxBlock < xWantedEnd) ||
+                while( !((uint32_t)pxBlock >= (uint32_t)xWantedStart && (uint32_t)pxBlock < (uint32_t)xWantedEnd) ||
                          (( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL )) )
                 {
                     pxPreviousBlock = pxBlock;
@@ -106,6 +131,11 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
 
                     /* The block is being returned - it is allocated and owned
                     by the application and has no "next" block. */
+#if RTOS_MEM_DEBUG
+                    char sbuf[32];
+                    sprintf(sbuf, "M>> %d,0x%08x\n", pxBlock->xBlockSize, (unsigned int)pxBlock);
+                    _write(1, sbuf, strlen(sbuf));
+#endif
                     pxBlock->xBlockSize |= xBlockAllocatedBit;
                     pxBlock->pxNextFreeBlock = NULL;
                 }
@@ -114,8 +144,8 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
 
         traceMALLOC( pvReturn, xWantedSize );
     }
-    ( void ) xTaskResumeAll();
-
+    heap_correct_check();
+    RTOS_MEM_UNLOCK;
     #if( configUSE_MALLOC_FAILED_HOOK == 1 )
     {
         if( pvReturn == NULL )
@@ -125,14 +155,57 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
         }
     }
     #endif
-
     return pvReturn;
+}
+
+/**
+ * Free Delayed without this Task.
+ * @param pv need free buf.
+ */
+BlockLink_t rtos_free_delay_link = {NULL, 0};
+void rtos_free_delayed(void *pv) {
+    uint8_t *puc = ( uint8_t * ) pv;
+    BlockLink_t *pxLink, *pxFree = &rtos_free_delay_link;
+    if( pv != NULL )
+    {
+        puc -= xHeapStructSize;
+        pxLink = ( void * ) puc;
+        configASSERT( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 );
+        configASSERT( pxLink->pxNextFreeBlock == NULL );
+        if( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 )
+        {
+            if( pxLink->pxNextFreeBlock == NULL )
+            {
+                while(pxFree->pxNextFreeBlock != NULL)
+                    pxFree = pxFree->pxNextFreeBlock;
+                pxFree->pxNextFreeBlock = pxLink;
+            }
+        }
+    }
+}
+
+void rtos_do_free(BlockLink_t *pxLink)
+{
+    /* The block is being returned to the heap - it is no longer allocated. */
+    pxLink->xBlockSize &= ~xBlockAllocatedBit;
+#if RTOS_MEM_DEBUG
+    char sbuf[32];
+    sprintf(sbuf, "F<< %d,0x%08x\n", pxLink->xBlockSize, (unsigned int)pxLink);
+    _write(1, sbuf, strlen(sbuf));
+#endif
+    {
+        /* Add this block to the list of free blocks. */
+        xFreeBytesRemaining += pxLink->xBlockSize;
+        traceFREE( pv, pxLink->xBlockSize );
+        prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
+    }
+    heap_correct_check();
 }
 
 void rtos_free(void *pv) {
     uint8_t *puc = ( uint8_t * ) pv;
-    BlockLink_t *pxLink;
-
+    BlockLink_t *pxLink, *pxFree = rtos_free_delay_link.pxNextFreeBlock;
+    RTOS_MEM_LOCK;
     if( pv != NULL )
     {
         /* The memory being freed will have an BlockLink_t structure immediately before it. */
@@ -149,20 +222,20 @@ void rtos_free(void *pv) {
         {
             if( pxLink->pxNextFreeBlock == NULL )
             {
-                /* The block is being returned to the heap - it is no longer allocated. */
-                pxLink->xBlockSize &= ~xBlockAllocatedBit;
-
-                vTaskSuspendAll();
-                {
-                    /* Add this block to the list of free blocks. */
-                    xFreeBytesRemaining += pxLink->xBlockSize;
-                    traceFREE( pv, pxLink->xBlockSize );
-                    prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
-                }
-                ( void ) xTaskResumeAll();
+                rtos_do_free(pxLink);
             }
         }
     }
+
+    ///< free all delayed.
+    while(pxFree != NULL)
+    {
+        pxLink = pxFree->pxNextFreeBlock;
+        rtos_do_free(pxFree);
+        pxFree = pxLink;
+    }
+    rtos_free_delay_link.pxNextFreeBlock = NULL;
+    RTOS_MEM_UNLOCK;
 }
 
 extern char         DMA_START[];
@@ -177,14 +250,49 @@ void *dma_alloc(size_t xWantedSize)
     return common_alloc(xWantedSize, (void *)DMA_START, /*DMA_START + */(void *)DMA_LIMIT);
 }
 
+void *rtos_realloc(void *pv, size_t size)
+{
+    void *ret = rtos_alloc(size);
+    if(pv != NULL)
+    {
+        BlockLink_t *pxBlock = (BlockLink_t *)(((uint8_t *)pv) - xHeapStructSize);
+        size_t old_size = pxBlock->xBlockSize &(~xBlockAllocatedBit);
+        memcpy(ret, pv, old_size< size?old_size:size);
+        rtos_free(pv);
+    }
+    return ret;
+}
+
+void *rtos_calloc(size_t count, size_t xWantedSize)
+{
+    size_t len = count*xWantedSize;
+    void *ret = dma_alloc(len);
+    if(ret)
+        memset(ret, 0, len);
+    return ret;
+}
+
 void *dma_calloc(size_t count, size_t xWantedSize)
 {
-    return dma_alloc(count*xWantedSize);
+    size_t len = count*xWantedSize;
+    void *ret = common_alloc(len, (void *)DMA_START, /*DMA_START + */(void *)DMA_LIMIT);
+    if(ret)
+        memset(ret, 0, len);
+    return ret;
 }
 
 void dma_free(void *pv)
 {
     return rtos_free(pv);
+}
+
+size_t rtos_free_heap_size()
+{
+    size_t ret = 0;
+    RTOS_MEM_LOCK;
+	ret = xFreeBytesRemaining;
+	RTOS_MEM_UNLOCK;
+    return ret;
 }
 
 size_t xPortGetFreeHeapSize( void )
@@ -199,12 +307,13 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 
 static void prvInsertBlockIntoFreeList( BlockLink_t *pxBlockToInsert )
 {
-BlockLink_t *pxIterator;
-uint8_t *puc;
+    BlockLink_t *pxIterator;
+    uint8_t *puc;
 
     /* Iterate through the list until a block is found that has a higher address
     than the block being inserted. */
-    for( pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert; pxIterator = pxIterator->pxNextFreeBlock )
+    for( pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert;
+                    pxIterator = pxIterator->pxNextFreeBlock )
     {
         /* Nothing to do here, just iterate to the right position. */
     }
@@ -274,6 +383,8 @@ void vApplicationMallocFailedHook( void )
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 {
+    (void) xTask;
+    (void) pcTaskName;
     assert(0);
 }
 #endif
@@ -301,7 +412,8 @@ void vApplicationGetIdleTaskMemory(
     
     xIdleTaskTCB = pvPortMalloc(TASKTCB_SIZE);
     uxIdleTaskStack = pvPortMalloc(sizeof(StackType_t) * FE_STATIC_IDLE_TASK_STATIC_SIZE);
-
+    for(int i=0; i< FE_STATIC_IDLE_TASK_STATIC_SIZE; i++)
+        uxIdleTaskStack[i] = 0xa5a5a5a5;
     *ppxIdleTaskTCBBuffer = xIdleTaskTCB;
     *ppxIdleTaskStackBuffer = uxIdleTaskStack;
     *pulIdleTaskStackSize = FE_STATIC_IDLE_TASK_STATIC_SIZE;
@@ -323,9 +435,10 @@ void vApplicationGetTimerTaskMemory(
         StackType_t **ppxTimerTaskStackBuffer,
         uint32_t *pulTimerTaskStackSize )
 {
-    xTimerTaskTCB = pvPortMalloc(TASKTCB_SIZE);
-    uxTimerTaskStack = pvPortMalloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
-
+    xTimerTaskTCB = dma_alloc(TASKTCB_SIZE);
+    uxTimerTaskStack = dma_alloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
+    for(int i=0; i< configTIMER_TASK_STACK_DEPTH; i++)
+        uxTimerTaskStack[i] = 0xa5a5a5a5;
     *ppxTimerTaskTCBBuffer = xTimerTaskTCB;
     *ppxTimerTaskStackBuffer = uxTimerTaskStack;
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
@@ -333,7 +446,7 @@ void vApplicationGetTimerTaskMemory(
 
 void *pvGetTimerTaskHandler()
 {
-    return &xTimerTaskTCB;
+    return xTimerTaskTCB;
 }
 
 #if CONFIG_RTOS_LIB_FREERTOS

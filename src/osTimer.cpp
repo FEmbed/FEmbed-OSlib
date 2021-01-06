@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,11 @@ static void TimerCallback(TimerHandle_t timer)
     os_timer->expired();
 }
 
-OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
+OSTimer::OSTimer(OSTimerCallback *cb, bool reload, const char *name)
 {
     uint32_t timer_id;
     TimerHandle_t timer = xTimerCreateStatic(
-            "FE:Timer",
+            name,
             1,
             reload? pdTRUE : pdFALSE,
             &timer_id,
@@ -55,7 +55,7 @@ OSTimer::OSTimer(OSTimerCallback *cb, bool reload)
 OSTimer::~OSTimer()
 {
 	this->stop();
-	xTimerDelete((TimerHandle_t) &this->m_timer, 0);
+	//xTimerDelete((TimerHandle_t) &this->m_timer, 0);
 }
 
 bool OSTimer::start(uint32_t ms)
@@ -103,6 +103,11 @@ bool OSTimer::stop()
     }
     m_runnig = false;
     return true;
+}
+
+bool OSTimer::isRun()
+{
+    return xTimerIsTimerActive((TimerHandle_t) &this->m_timer) == pdTRUE?true:false;
 }
 
 uint32_t OSTimer::period()
