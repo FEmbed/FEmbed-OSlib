@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,11 @@ class OSMutexLocker {
     OSMutexLocker(OSMutex *lk) {
         _lk = lk;
         assert(lk);
+        _lk->lock();
+    }
+
+    OSMutexLocker(OSMutex &lk) {
+        _lk = &lk;
         _lk->lock();
     }
 

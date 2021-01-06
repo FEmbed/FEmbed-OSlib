@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@
 #if USE_FEMBED
 #include "fe_target_ticks.h"
 #endif
-
-#define OSTAK_RUNONCE_NAME      "__?Run?__"
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
@@ -145,6 +143,9 @@ OSTask::~OSTask() {
     }
     taskEXIT_CRITICAL();
     m_lock.reset();
+#if USE_FEMBED
+    m_wd.reset();
+#endif
     vTaskDelete(handle);
 }
 
@@ -164,9 +165,11 @@ void OSTask::start()
 }
 #endif
 
-void OSTask::runOnce(fe_task_runable runable)
+void OSTask::runOnce(fe_task_runable runable, const char *name, void *arg,
+                     uint32_t stack_size, uint32_t prio,
+                     uint32_t flag)
 {
-    (new FEmbed::OSTask(OSTAK_RUNONCE_NAME))->setRunable(runable)->start();
+    (new FEmbed::OSTask(name, stack_size, prio, flag))->setRunable(runable, arg)->start();
 }
 
 void OSTask::stop()
@@ -185,10 +188,13 @@ uint32_t OSTask::priority()
     return uxTaskPriorityGet(this->d_ptr->handle);
 }
 
-OSTask *OSTask::setRunable(fe_task_runable runable)
+OSTask *OSTask::setRunable(fe_task_runable runable, void *arg)
 {
     if(this->d_ptr)
+    {
         this->d_ptr->m_runable = runable;
+        this->d_ptr->m_runable_arg = arg;
+    }
     return this;
 }
 
@@ -212,7 +218,7 @@ void OSTask::loop()
 {
     //Must override this function for real do.
     if(this->d_ptr->m_runable)
-        this->d_ptr->m_runable(this);
+        this->d_ptr->m_runable(this->d_ptr->m_runable_arg);
 }
 
 bool OSTask::feedDog()
@@ -283,4 +289,14 @@ void osDelay(uint32_t ms)
 #endif
 }
 
+}
+
+extern "C"
+{
+    void fe_os_thread_new(fe_task_runable runable, const char *name, void *arg,
+                          uint32_t stack_size, uint32_t prio,
+                          uint32_t flag)
+    {
+        FEmbed::OSTask::runOnce(runable, name, arg, stack_size, prio, flag);
+    }
 }

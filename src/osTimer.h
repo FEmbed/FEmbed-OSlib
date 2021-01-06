@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,13 @@ public:
 
 class OSTimer {
 public:
-	OSTimer(OSTimerCallback *cb, bool reload);
+	OSTimer(OSTimerCallback *cb, bool reload, const char *name = "FE:Timer");
 	virtual ~OSTimer();
 
 	bool start(uint32_t ms);
 	bool stop();
 	bool reset();
+	bool isRun();
 
 	uint32_t period();
 	uint32_t expiryTime();

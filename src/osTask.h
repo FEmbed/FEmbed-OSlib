@@ -1,5 +1,5 @@
 /* FastEmbedded Microcontroller Library
- * Copyright (c) 2018-2028 Gene Kong
+ * Copyright (c) 2018 Gene Kong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,21 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "fe_os.h"
+
+
+#define OSTAK_RUNONCE_NAME                      "__?Run?__"
 
 #if USE_FEMBED
 #include <FEmbed.h>
 
 #define FE_OSTASK_FEED_CURR_DOG                 do { if(FEmbed::OSTask::currentTask()) FEmbed::OSTask::currentTask()->feedDog(); } while(0)
-#define FE_OSTASK_FLAG_DMA_STACK                (1)
 #else
 #define FE_OSTASK_FEED_CURR_DOG                 
-#define FE_OSTASK_FLAG_DMA_STACK
 #endif
 
 #define FE_OSTAK_ENTER_CRITICAL                 taskENTER_CRITICAL
 #define FE_OSTAK_EXIT_CRITICAL                  taskEXIT_CRITICAL
-
-typedef void (*fe_task_runable)(void *arg);
 
 namespace FEmbed {
 class OSTask;
@@ -45,6 +45,7 @@ public:
     class OSTask *m_task;
     TaskHandle_t  handle;                    ///< use to handle current os tid.
     fe_task_runable m_runable;
+    void *m_runable_arg;
     bool m_is_run;
 };
 
@@ -67,7 +68,7 @@ public:
 #endif
     void stop();
     void exit(int signal);
-    OSTask *setRunable(fe_task_runable runable);
+    OSTask *setRunable(fe_task_runable runable, void *arg = NULL);
     bool isRun();
     uint32_t priority();
     char *name();
@@ -84,7 +85,9 @@ public:
      * Runonce object will auto re-cycle memory after run out.
      * @param runable run object.
      */
-    static void runOnce(fe_task_runable runable);
+    static void runOnce(fe_task_runable runable, const char *name = OSTAK_RUNONCE_NAME, void *arg = NULL,
+                        uint32_t stack_size = 2048, uint32_t prio = configMAX_PRIORITIES/2,
+                        uint32_t flag = FE_OSTASK_FLAG_DMA_STACK);
 
     static void osInit();
     static char *currentTaskName();
@@ -106,6 +109,30 @@ private:
 
     // static global delay
     void osDelay(uint32_t ms);
+
+/**
+ * Fast memory alloc and auto free.
+ */
+class OSMemoryAllocator {
+ public:
+    OSMemoryAllocator(size_t size, uint8_t mem_type = 0) {
+        _mem = NULL;
+        if(mem_type == 1)
+            _mem = DMA_MALLOC(size);
+        else
+            _mem = malloc(size);
+    }
+
+    void *address() {
+        return _mem;
+    }
+
+    virtual ~OSMemoryAllocator() {
+        if(_mem) free(_mem);
+    }
+    void *_mem;
+};
+
 }
 
 #define FE_OS_MEMBER_BOOL(OBJ, NAME) \

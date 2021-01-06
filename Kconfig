@@ -1,4 +1,4 @@
-menu "FastEmbedded RTOS Library Configuration"
+menu "RTOS Configuration"
     depends on RTOS
 
 choice RTOS_LIB
@@ -11,5 +11,20 @@ config RTOS_LIB_FREERTOS
     bool "FreeRTOS"
 
 endchoice
+
+config FREERTOS_TICKS
+    depends on RTOS_LIB_FREERTOS
+    int "FreeRTOS time ticks count"
+    default 1000
+
+config FREERTOS_TICKLESS_IDLE
+    depends on RTOS_LIB_FREERTOS
+    bool "Enter sleep mode when in idle task"
+    default 1
+    
+config FREERTOS_EXPECTED_IDLE_TIME_BEFORE_SLEEP
+    depends on RTOS_LIB_FREERTOS
+    int "Expected idle time before sleep"
+    default 5
 
 endmenu

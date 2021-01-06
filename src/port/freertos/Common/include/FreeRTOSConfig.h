@@ -116,13 +116,23 @@
 #define configUSE_MALLOC_FAILED_HOOK             1
 #define configCHECK_FOR_STACK_OVERFLOW_NAME      vApplicationStackOverflowHook
 
-#define configTICK_RATE_HZ                       ((portTickType)1000)
+#define configTICK_RATE_HZ                       ((portTickType)CONFIG_FREERTOS_TICKS)
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
 #define configMAX_TASK_NAME_LEN                  ( 32 )
-#define configUSE_TRACE_FACILITY                 1
+
 #define configRECORD_STACK_HIGH_ADDRESS          1
+
+#ifdef DEBUG
+#define configUSE_TRACE_FACILITY                 1
+#define configUSE_STATS_FORMATTING_FUNCTIONS     1
 #define configGENERATE_RUN_TIME_STATS            1
+#else
+#define configUSE_TRACE_FACILITY                 0
+#define configUSE_STATS_FORMATTING_FUNCTIONS     0
+#define configGENERATE_RUN_TIME_STATS            0
+#endif
+
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
@@ -131,27 +141,18 @@
 #define configSUPPORT_STATIC_ALLOCATION          1
 
 #ifdef CONFIG_ENABLE_PTHREAD
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 3
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS     3
 #else
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS     2
 #endif
 #define configTHREAD_LOCAL_STORAGE_DELETE_CALLBACKS 1
 
-#ifndef configGENERATE_RUN_TIME_STATS_USE_TICKS
-  #define configGENERATE_RUN_TIME_STATS_USE_TICKS 1 /* 1: Use the RTOS tick counter as runtime counter. 0: use extra timer */
-#endif
 #ifndef configGENERATE_RUN_TIME_STATS
   #define configGENERATE_RUN_TIME_STATS           1 /* 1: generate runtime statistics; 0: no runtime statistics */
 #endif
 #if configGENERATE_RUN_TIME_STATS
-  #if configGENERATE_RUN_TIME_STATS_USE_TICKS
     #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   /* nothing */ /* default: use Tick counter as runtime counter */
     #define portGET_RUN_TIME_COUNTER_VALUE()           xTaskGetTickCountFromISR() /* default: use Tick counter as runtime counter */
-  #else /* use dedicated timer */
-    extern uint32_t McuRTOS_AppGetRuntimeCounterValueFromISR(void);
-    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   McuRTOS_AppConfigureTimerForRuntimeStats()
-    #define portGET_RUN_TIME_COUNTER_VALUE()           McuRTOS_AppGetRuntimeCounterValueFromISR()
-  #endif
 #else /* no runtime stats, use empty macros */
   #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()     /* nothing */
   #define portGET_RUN_TIME_COUNTER_VALUE()             /* nothing */
@@ -168,8 +169,8 @@
 #endif
 
 //Lower Power
-#define configUSE_TICKLESS_IDLE                  1
-#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP    5
+#define configUSE_TICKLESS_IDLE                  CONFIG_FREERTOS_TICKLESS_IDLE
+#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP    CONFIG_FREERTOS_EXPECTED_IDLE_TIME_BEFORE_SLEEP
 #define configCHECK_FOR_STACK_OVERFLOW           2
 
 /* Co-routine definitions. */

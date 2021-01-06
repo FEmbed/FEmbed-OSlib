@@ -7,10 +7,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "elog.h"
+#include "cmsis.h"
 #include "driver_config.h"
 
 #define RTOS_MEM_DEBUG                                                      (0)
 #if CONFIG_RTOS_LIB_FREERTOS
+#ifndef RTOS_MEM_LOCK
+#define RTOS_MEM_LOCK vTaskSuspendAll()
+#endif
+#ifndef RTOS_MEM_UNLOCK
+#define RTOS_MEM_UNLOCK ( void ) xTaskResumeAll()
+#endif
 /*******************************************************************************
  * Create New For some multi-region memory malloc and free.
  ******************************************************************************/
@@ -55,7 +62,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
 
     configASSERT( pxEnd );
     //configASSERT( FE_IS_IN_ISR() == 0 );
-    vTaskSuspendAll();
+    RTOS_MEM_LOCK;
     heap_correct_check();
     {
         if( ( xWantedSize & xBlockAllocatedBit ) == 0 )
@@ -138,8 +145,7 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
         traceMALLOC( pvReturn, xWantedSize );
     }
     heap_correct_check();
-    ( void ) xTaskResumeAll();
-
+    RTOS_MEM_UNLOCK;
     #if( configUSE_MALLOC_FAILED_HOOK == 1 )
     {
         if( pvReturn == NULL )
@@ -149,7 +155,6 @@ void *common_alloc(size_t xWantedSize, void *xWantedStart, void *xWantedEnd) {
         }
     }
     #endif
-
     return pvReturn;
 }
 
@@ -188,7 +193,6 @@ void rtos_do_free(BlockLink_t *pxLink)
     sprintf(sbuf, "F<< %d,0x%08x\n", pxLink->xBlockSize, (unsigned int)pxLink);
     _write(1, sbuf, strlen(sbuf));
 #endif
-    vTaskSuspendAll();
     {
         /* Add this block to the list of free blocks. */
         xFreeBytesRemaining += pxLink->xBlockSize;
@@ -196,13 +200,12 @@ void rtos_do_free(BlockLink_t *pxLink)
         prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
     }
     heap_correct_check();
-    ( void ) xTaskResumeAll();
 }
 
 void rtos_free(void *pv) {
     uint8_t *puc = ( uint8_t * ) pv;
     BlockLink_t *pxLink, *pxFree = rtos_free_delay_link.pxNextFreeBlock;
-
+    RTOS_MEM_LOCK;
     if( pv != NULL )
     {
         /* The memory being freed will have an BlockLink_t structure immediately before it. */
@@ -232,6 +235,7 @@ void rtos_free(void *pv) {
         pxFree = pxLink;
     }
     rtos_free_delay_link.pxNextFreeBlock = NULL;
+    RTOS_MEM_UNLOCK;
 }
 
 extern char         DMA_START[];
@@ -285,9 +289,9 @@ void dma_free(void *pv)
 size_t rtos_free_heap_size()
 {
     size_t ret = 0;
-    vTaskSuspendAll();
-    ret = xFreeBytesRemaining;
-    ( void ) xTaskResumeAll();
+    RTOS_MEM_LOCK;
+	ret = xFreeBytesRemaining;
+	RTOS_MEM_UNLOCK;
     return ret;
 }
 
