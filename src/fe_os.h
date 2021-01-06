@@ -16,8 +16,25 @@
 
 #if USE_FEMBED
 #define FE_OSTASK_FLAG_DMA_STACK                (1)
+#include "driver.h"
+#include "fe_target_ticks.h"
 #else
-#define FE_OSTASK_FLAG_DMA_STACK
+#define FE_OSTASK_FLAG_DMA_STACK                (1)
+#define DMA_MALLOC  malloc
+#define DMA_FREE    free
+#endif
+
+#if defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
+
+#else
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "task.h"
+#include "event_groups.h"
 #endif
 
 typedef void (*fe_task_runable)(void *arg);

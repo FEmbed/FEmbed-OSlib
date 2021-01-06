@@ -8,13 +8,7 @@
 
 #include "osMutex.h"
 
-#include "FreeRTOS.h"
-#include "semphr.h"
-#include "task.h"
-
-#if USE_FEMBED
-#include "driver.h"
-#endif
+#include "fe_os.h"
 
 namespace FEmbed {
 

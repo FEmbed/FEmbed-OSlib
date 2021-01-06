@@ -21,8 +21,7 @@
 #include <cstdint>
 #include <cassert>
 
-#include "FreeRTOS.h"
-#include "semphr.h"
+#include "fe_os.h"
 #include <memory>
 
 namespace FEmbed {

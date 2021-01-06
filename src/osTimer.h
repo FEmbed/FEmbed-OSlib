@@ -21,8 +21,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "FreeRTOS.h"
-#include "timers.h"
+#include "fe_os.h"
 
 namespace FEmbed {
 class OSTimer;

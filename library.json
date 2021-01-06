@@ -18,14 +18,6 @@
     "platforms": "custom8266,espressif32",
     "build": {
         "includeDir": "src",
-        "srcFilter":[
-            "-<freertos/*.c>",
-            "-<port>",
-            "+<port/freertos/Common>",
-            "+<*.c>",
-            "+<*.cpp>",
-            "+<*.h>"
-        ],
         "extraScript": "generate_headers.py"
     }
 }

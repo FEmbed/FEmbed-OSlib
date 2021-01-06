@@ -16,9 +16,6 @@
  */
 
 #include "osTimer.h"
-#if USE_FEMBED
-#include "driver.h"
-#endif
 
 #ifndef FE_PARENT_OBJECT
 //  type:   father object type.

@@ -20,10 +20,6 @@
 
 #include "osTask.h"
 
-#if USE_FEMBED
-#include "fe_target_ticks.h"
-#endif
-
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
 static void OSTask_runable_wrap(void *arg)

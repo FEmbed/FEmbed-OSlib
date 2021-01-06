@@ -20,13 +20,7 @@
 
 #include <stdint.h>
 #include <assert.h>
-#if defined(ESP_PLATFORM)
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
-#else
-#include "FreeRTOS.h"
-#include "semphr.h"
-#endif
+#include <fe_os.h>
 
 namespace FEmbed {
 class OSMessagePrivateData {

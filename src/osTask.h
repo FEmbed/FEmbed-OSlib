@@ -17,11 +17,8 @@
 #ifndef __FE_FASTEMBEDDED_OS_TASK_H__
 #define __FE_FASTEMBEDDED_OS_TASK_H__
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
 #include "fe_os.h"
-
+#include "osMutex.h"
 
 #define OSTAK_RUNONCE_NAME                      "__?Run?__"
 

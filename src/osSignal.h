@@ -20,10 +20,7 @@
 
 #include <stdint.h>
 #include <assert.h>
-
-#include "FreeRTOS.h"
-#include "semphr.h"
-#include "event_groups.h"
+#include "fe_os.h"
 
 namespace FEmbed {
 

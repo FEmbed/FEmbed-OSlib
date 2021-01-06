@@ -18,12 +18,11 @@ if framework != "fembed":
 
     from os.path import join, realpath
 
-    if env["PIOFRAMEWORK"] == "esp8266-rtos-sdk":
+    if env["PIOFRAMEWORK"] in ["esp8266-rtos-sdk", "espressif32"]:
         pass
     env.Replace(SRC_FILTER = [
             "-<freertos/*.c>",
             "-<port>",
-            "+<port/freertos/Common>",
             "+<*.c>",
             "+<*.cpp>",
             "+<*.h>"
