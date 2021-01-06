@@ -17,9 +17,15 @@
 #ifndef __FE_FASTEMBEDDED_OS_TASK_H__
 #define __FE_FASTEMBEDDED_OS_TASK_H__
 
+#if defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#else
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#endif
 
 #if USE_FEMBED
 #include <FEmbed.h>

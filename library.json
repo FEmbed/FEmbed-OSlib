@@ -14,8 +14,8 @@
         "url": "https://github.com/FastEmbedded/FEmbed-OSlib.git"
     },
     "version": "0.1.0",
-    "frameworks": "esp8266-rtos-sdk",
-    "platforms": "custom8266",
+    "frameworks": "esp8266-rtos-sdk,espidf",
+    "platforms": "custom8266,espressif32",
     "build": {
         "includeDir": "src",
         "srcFilter":[
