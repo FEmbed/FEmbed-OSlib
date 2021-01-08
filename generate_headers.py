@@ -23,6 +23,7 @@ if framework != "fembed":
     env.Replace(SRC_FILTER = [
             "-<freertos/*.c>",
             "-<port>",
+            "+<port/freertos/Common/rtos_stub.c>",
             "+<*.c>",
             "+<*.cpp>",
             "+<*.h>"

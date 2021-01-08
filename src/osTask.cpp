@@ -19,6 +19,9 @@
 #include <string.h>
 
 #include "osTask.h"
+#if defined(ESP_PLATFORM)
+#include "Arduino.h"
+#endif
 
 #define STATICTASK_SIZE ((sizeof(StaticTask_t) + 15)&(~0xf))
 
@@ -61,9 +64,13 @@ void FEmbedDeleteCallbackFunction(int idx, void * data)
     OSTaskPrivateData *ptr = (OSTaskPrivateData *)data;
     TaskHandle_t handle = ptr->handle;
 
+#if defined(USE_FEMBED)
     //Need deleted OSTask from current RTOS
     rtos_free_delayed(((StaticTask_t *)handle)->pxDummy6);
     rtos_free_delayed(handle);
+#else
+    assert(0);
+#endif
 }
 
 OSTask::OSTask(
@@ -82,7 +89,11 @@ OSTask::OSTask(
     StackType_t *stack_ptr;
 
     assert((stack_size % sizeof(StackType_t)) == 0);
+#if defined(ESP_PLATFORM)
+#else
     taskENTER_CRITICAL();
+#endif
+
 #if USE_FEMBED
     m_wd_mask = 0;
     if(FE_OSTASK_FLAG_DMA_STACK & flags)
@@ -114,7 +125,10 @@ OSTask::OSTask(
             (StackType_t * const)stack_ptr,
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
+#if defined(ESP_PLATFORM)
+#else
     taskEXIT_CRITICAL();
+#endif
     vTaskSetThreadLocalStoragePointerAndDelCallback(this->d_ptr->handle,
                                                     configNUM_THREAD_LOCAL_STORAGE_POINTERS - 1,
                                                     this->d_ptr,
@@ -126,7 +140,10 @@ OSTask::~OSTask() {
     TaskHandle_t handle = ptr->handle;
 
     // Don't interrupt this free process, else may get memory error.
+#if defined(ESP_PLATFORM)
+#else
     taskENTER_CRITICAL();
+#endif
     // If we release object in current OSTask, manual force to free it.
     if((xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) &&
         (xTaskGetCurrentTaskHandle() == this->d_ptr->handle))
@@ -137,7 +154,10 @@ OSTask::~OSTask() {
     {
         this->stop();
     }
+#if defined(ESP_PLATFORM)
+#else
     taskEXIT_CRITICAL();
+#endif
     m_lock.reset();
 #if USE_FEMBED
     m_wd.reset();
@@ -295,4 +315,11 @@ extern "C"
     {
         FEmbed::OSTask::runOnce(runable, name, arg, stack_size, prio, flag);
     }
+
+#if defined(ESP_PLATFORM)
+    void delay(uint32_t ms) {
+        portTickType ticks = ms / portTICK_RATE_MS;
+        vTaskDelay(ticks ? ticks : 1);
+    }
+#endif
 }

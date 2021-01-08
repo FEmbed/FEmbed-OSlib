@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
+#if defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#else
 #include "FreeRTOS.h"
 #include "task.h"
 #include "elog.h"
@@ -392,6 +396,7 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 #if !defined(__ccm)
 #define __ccm
 #endif
+#endif
 
 #if USE_ESPRESSIF8266
 #include "esp_log.h"
@@ -435,8 +440,13 @@ void vApplicationGetTimerTaskMemory(
         StackType_t **ppxTimerTaskStackBuffer,
         uint32_t *pulTimerTaskStackSize )
 {
+#if defined(ESP_PLATFORM)
+    xTimerTaskTCB = pvPortMalloc(TASKTCB_SIZE);
+    uxTimerTaskStack = pvPortMalloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
+#else
     xTimerTaskTCB = dma_alloc(TASKTCB_SIZE);
     uxTimerTaskStack = dma_alloc(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
+#endif
     for(int i=0; i< configTIMER_TASK_STACK_DEPTH; i++)
         uxTimerTaskStack[i] = 0xa5a5a5a5;
     *ppxTimerTaskTCBBuffer = xTimerTaskTCB;
@@ -448,6 +458,12 @@ void *pvGetTimerTaskHandler()
 {
     return xTimerTaskTCB;
 }
+
+#if defined(ESP_PLATFORM)
+    void vPortCleanUpTCB ( void *pxTCB ) {
+        // place clean up code here
+    }
+#endif
 
 #if CONFIG_RTOS_LIB_FREERTOS
 /******************************************************************************
