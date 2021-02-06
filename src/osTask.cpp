@@ -35,6 +35,7 @@ static void OSTask_runable_wrap(void *arg)
     if(strcmp(task->name(), OSTAK_RUNONCE_NAME) == 0)
     {
         delete task;
+        while(1);
     }
     else
     {
@@ -90,6 +91,8 @@ OSTask::OSTask(
 
     assert((stack_size % sizeof(StackType_t)) == 0);
 #if defined(ESP_PLATFORM)
+    portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+    taskENTER_CRITICAL(&mux);
 #else
     taskENTER_CRITICAL();
 #endif
@@ -126,6 +129,7 @@ OSTask::OSTask(
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
 #if defined(ESP_PLATFORM)
+    taskEXIT_CRITICAL(&mux);
 #else
     taskEXIT_CRITICAL();
 #endif
@@ -141,6 +145,8 @@ OSTask::~OSTask() {
 
     // Don't interrupt this free process, else may get memory error.
 #if defined(ESP_PLATFORM)
+    portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+    taskENTER_CRITICAL(&mux);
 #else
     taskENTER_CRITICAL();
 #endif
@@ -155,6 +161,7 @@ OSTask::~OSTask() {
         this->stop();
     }
 #if defined(ESP_PLATFORM)
+    taskEXIT_CRITICAL(&mux);
 #else
     taskEXIT_CRITICAL();
 #endif
@@ -297,7 +304,7 @@ uint32_t OSTask::currentTick()
 
 void osDelay(uint32_t ms)
 {
-#if USE_FEMBED   
+#if USE_FEMBED
     fe_delay(ms);
 #else
     portTickType ticks = ms / portTICK_RATE_MS;
