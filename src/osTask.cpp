@@ -90,7 +90,7 @@ OSTask::OSTask(
     StackType_t *stack_ptr;
 
     assert((stack_size % sizeof(StackType_t)) == 0);
-#if defined(ESP_PLATFORM)
+#if defined(ESP32)
     portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
     taskENTER_CRITICAL(&mux);
 #else
@@ -128,7 +128,7 @@ OSTask::OSTask(
             (StackType_t * const)stack_ptr,
             (StaticTask_t * const)task_ptr);
     assert(this->d_ptr->handle == (TaskHandle_t)task_ptr);
-#if defined(ESP_PLATFORM)
+#if defined(ESP32)
     taskEXIT_CRITICAL(&mux);
 #else
     taskEXIT_CRITICAL();
@@ -144,7 +144,7 @@ OSTask::~OSTask() {
     TaskHandle_t handle = ptr->handle;
 
     // Don't interrupt this free process, else may get memory error.
-#if defined(ESP_PLATFORM)
+#if defined(ESP32)
     portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
     taskENTER_CRITICAL(&mux);
 #else
@@ -160,7 +160,7 @@ OSTask::~OSTask() {
     {
         this->stop();
     }
-#if defined(ESP_PLATFORM)
+#if defined(ESP32)
     taskEXIT_CRITICAL(&mux);
 #else
     taskEXIT_CRITICAL();
